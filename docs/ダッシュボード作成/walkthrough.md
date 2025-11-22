@@ -1,0 +1,51 @@
+# FXダッシュボード 開発ウォークスルー
+
+## 概要
+このドキュメントでは、FXダッシュボードの開発プロセス、検証結果、および重要な変更点を記録します。
+
+## 2025-11-22: 環境構築
+
+### バックエンド (FastAPI)
+- `backend` ディレクトリを作成し、Python仮想環境 (`.venv`) を構築。
+- `uv` を使用して依存関係 (`FastAPI`, `Uvicorn`, `SQLAlchemy`, `aiosqlite`) をインストール。
+- `app/main.py` を作成し、サーバーが正常に起動することを確認。
+- APIヘルスチェック (`/api/status`) の動作確認完了。
+
+### フロントエンド (React + Vite)
+- `frontend` ディレクトリを作成し、Vite (React + TypeScript) プロジェクトを初期化。
+- 依存関係および UIライブラリ (`Chakra UI`, `Emotion`, `Framer Motion`, `Recharts`) をインストール。
+- **コンポーネント実装**:
+    - `Layout`: `Header`, `Sidebar`, `DashboardLayout` (Chakra UI v3対応)
+    - `Dashboard`: 
+        - `RatePanel`: 通貨ペアのレート表示 (Mockデータ)
+        - `ChartWidget`: Rechartsを使用したチャート表示 (Mockデータ)
+        - `PositionTable`: 保有ポジション一覧表示 (Mockデータ)
+- `npm run build` によるビルド検証完了。
+
+### 画面プレビュー
+以下の録画で、ダッシュボードの動作（起動、コンポーネント表示、スクロール）を確認できます。
+
+![Dashboard Preview](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/dashboard_preview_1763813180520.webp)
+
+### 統合プレビュー (API & WebSocket)
+バックエンドと接続し、リアルタイムにレートが更新される様子を確認できます。
+※ Statusが "Stopped" となっていますが、これはDBにステータスデータがないためで、API接続自体は成功しています。
+
+![Integration Preview](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/integration_preview_1763814463046.webp)
+
+### エンドツーエンド検証 (Botシミュレーション)
+`simulate_bot.py` スクリプトを使用して、Botがデータベースを更新し、それがフロントエンドに反映されることを確認しました。
+- **Status**: Bot起動時に "Running"、停止時に "Stopped" に変化（ポーリング）。
+- **Positions**: Botが生成したポジションがテーブルに表示される（ポーリング）。
+- **Rates**: WebSocket経由でリアルタイム更新。
+
+![E2E Verification](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/e2e_verification_final_1763814795285.webp)
+
+## 今後の展望
+- **認証機能**: ログイン画面の実装。
+- **注文機能**: フロントエンドからの注文発注機能。
+- **履歴表示**: 過去の取引履歴のグラフ化。
+
+
+
+
