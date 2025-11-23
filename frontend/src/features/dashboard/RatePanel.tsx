@@ -1,62 +1,68 @@
-import { Box, Heading, Stat, HStack } from '@chakra-ui/react';
+import { Box, Heading, SimpleGrid, Stat, HStack, Checkbox, Stack } from '@chakra-ui/react';
 import { usePrices } from '../../hooks/usePrices';
+import { useState } from 'react';
 
-const AVAILABLE_SYMBOLS = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD"];
+const AVAILABLE_SYMBOLS = ["BTCUSD", "USDJPY", "EURUSD"];
 
-interface RatePanelProps {
-    selectedSymbol: string;
-    onSymbolChange: (symbol: string) => void;
-}
-
-export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) => {
+export const RatePanel = () => {
     const { prices, isConnected } = usePrices();
-    const data = prices[selectedSymbol];
+    const [selectedSymbols, setSelectedSymbols] = useState<string[]>(["BTCUSD", "USDJPY"]);
+
+    const toggleSymbol = (symbol: string) => {
+        if (selectedSymbols.includes(symbol)) {
+            setSelectedSymbols(selectedSymbols.filter(s => s !== symbol));
+        } else {
+            setSelectedSymbols([...selectedSymbols, symbol]);
+        }
+    };
 
     return (
         <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700">
-            <Heading size="md" mb={4}>ライブレート {isConnected ? '(接続中)' : '(切断時)'}</Heading>
+            <Heading size="md" mb={4}>Live Rates {isConnected ? '(Connected)' : '(Disconnected)'}</Heading>
 
             <HStack gap={4} mb={6}>
-                <select
-                    value={selectedSymbol}
-                    onChange={(e) => onSymbolChange(e.target.value)}
-                    style={{
-                        width: '200px',
-                        padding: '8px',
-                        borderRadius: '4px',
-                        background: '#2D3748',
-                        color: 'white',
-                        border: '1px solid #4A5568'
-                    }}
-                >
-                    {AVAILABLE_SYMBOLS.map(symbol => (
-                        <option key={symbol} value={symbol}>{symbol}</option>
-                    ))}
-                </select>
+                {AVAILABLE_SYMBOLS.map(symbol => (
+                    <Checkbox.Root
+                        key={symbol}
+                        checked={selectedSymbols.includes(symbol)}
+                        onCheckedChange={() => toggleSymbol(symbol)}
+                    >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control />
+                        <Checkbox.Label>{symbol}</Checkbox.Label>
+                    </Checkbox.Root>
+                ))}
             </HStack>
 
-            <Box p={3} bg="gray.700" borderRadius="md">
-                <Stat.Root>
-                    <Stat.Label fontSize="lg" fontWeight="bold">{selectedSymbol}</Stat.Label>
-                    <HStack justify="space-between" mt={2}>
-                        <Box>
-                            <Stat.Label fontSize="xs">Bid</Stat.Label>
-                            <Stat.ValueText fontSize="xl" color="red.300">
-                                {data?.bid?.toFixed(selectedSymbol.includes("JPY") ? 3 : 5) || '---'}
-                            </Stat.ValueText>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+                {selectedSymbols.map(symbol => {
+                    const data = prices[symbol];
+                    return (
+                        <Box key={symbol} p={3} bg="gray.700" borderRadius="md">
+                            <Stat.Root>
+                                <Stat.Label fontSize="lg" fontWeight="bold">{symbol}</Stat.Label>
+                                <HStack justify="space-between" mt={2}>
+                                    <Box>
+                                        <Stat.Label fontSize="xs">Bid</Stat.Label>
+                                        <Stat.ValueText fontSize="xl" color="red.300">
+                                            {data?.bid?.toFixed(symbol.includes("JPY") ? 3 : 5) || '---'}
+                                        </Stat.ValueText>
+                                    </Box>
+                                    <Box>
+                                        <Stat.Label fontSize="xs">Ask</Stat.Label>
+                                        <Stat.ValueText fontSize="xl" color="blue.300">
+                                            {data?.ask?.toFixed(symbol.includes("JPY") ? 3 : 5) || '---'}
+                                        </Stat.ValueText>
+                                    </Box>
+                                </HStack>
+                                <HStack justify="flex-end" mt={1}>
+                                    <Stat.HelpText fontSize="sm">Spread: {data?.spread ?? '-'}</Stat.HelpText>
+                                </HStack>
+                            </Stat.Root>
                         </Box>
-                        <Box>
-                            <Stat.Label fontSize="xs">Ask</Stat.Label>
-                            <Stat.ValueText fontSize="xl" color="blue.300">
-                                {data?.ask?.toFixed(selectedSymbol.includes("JPY") ? 3 : 5) || '---'}
-                            </Stat.ValueText>
-                        </Box>
-                    </HStack>
-                    <HStack justify="flex-end" mt={1}>
-                        <Stat.HelpText fontSize="sm">Spread: {data?.spread ?? '-'}</Stat.HelpText>
-                    </HStack>
-                </Stat.Root>
-            </Box>
+                    );
+                })}
+            </SimpleGrid>
         </Box>
     );
 };
