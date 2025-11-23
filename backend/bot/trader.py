@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class Trader:
-    def __init__(self, symbol="USDJPY", timeframe=1): # timeframe 1 min
+    def __init__(self, symbol="BTCUSD", timeframe=1): # timeframe 1 min
         self.client = MT5Client()
         self.strategy = Strategy()
         self.symbol = symbol

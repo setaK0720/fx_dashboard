@@ -28,3 +28,8 @@ Thumbs.db
 # Project specific
 backend/database.db
 backend/simulate_bot.py
+
+# PyInstaller
+backend/build/
+backend/dist/
+*.spec

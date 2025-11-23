@@ -5,6 +5,9 @@ from app.database import init_db, get_db
 from app.models.base import BotStatus, Position
 from sqlalchemy import select
 from typing import List
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 app = FastAPI()
 
@@ -98,24 +101,45 @@ async def run_backtest_endpoint(request: BacktestRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+from bot.mt5_client import MT5Client
+
+mt5_client = MT5Client()
+
 @app.on_event("startup")
 async def on_startup():
     await init_db()
+    if mt5_client.connect():
+        print("Connected to MT5")
+    else:
+        print("Failed to connect to MT5")
     asyncio.create_task(broadcast_prices())
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    mt5_client.disconnect()
 
 async def broadcast_prices():
     while True:
         if manager.active_connections:
-            price_data = {
-                "USD/JPY": round(150.00 + random.uniform(-0.5, 0.5), 3),
-                "EUR/USD": round(1.0850 + random.uniform(-0.005, 0.005), 5)
-            }
-            await manager.broadcast(json.dumps(price_data))
+            # Fetch real rates from MT5
+            symbols = ["BTCUSD", "USDJPY", "EURUSD"]
+            price_data = {}
+            
+            for symbol in symbols:
+                rate = mt5_client.get_rates(symbol)
+                if rate:
+                    # Use bid price for display
+                    price_data[symbol] = rate["bid"]
+                else:
+                    # Fallback or keep previous if needed, for now just skip or use 0
+                    # To avoid UI flickering, we might want to maintain last known state
+                    pass
+            
+            if price_data:
+                await manager.broadcast(json.dumps(price_data))
+        
         await asyncio.sleep(1)
 
-@app.get("/")
-async def root():
-    return {"message": "FX Dashboard API"}
 
 
 @app.get("/api/status")
@@ -145,3 +169,28 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
+
+import sys
+
+# Mount static files
+# Note: In production/exe, we need to handle paths correctly.
+if getattr(sys, 'frozen', False):
+    # Running as compiled exe
+    base_path = sys._MEIPASS
+    frontend_dist = os.path.join(base_path, "frontend", "dist")
+else:
+    # Running as script
+    frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+
+if os.path.exists(frontend_dist):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    # Allow API routes to pass through
+    if full_path.startswith("api") or full_path.startswith("ws"):
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    if os.path.exists(frontend_dist):
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+    return {"message": "Frontend not found"}

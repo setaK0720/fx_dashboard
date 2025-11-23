@@ -1,32 +1,37 @@
 import { useEffect, useState } from 'react';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 const WS_URL = 'ws://localhost:8000/ws/prices';
 
 export const usePrices = () => {
-    const [lastMessage, setLastMessage] = useState<string | null>(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const { lastMessage, readyState } = useWebSocket(WS_URL, {
+        shouldReconnect: () => true,
+    });
+
+    const [prices, setPrices] = useState<Record<string, number>>({});
 
     useEffect(() => {
-        const ws = new WebSocket(WS_URL);
+        if (lastMessage !== null) {
+            try {
+                const data = JSON.parse(lastMessage.data);
+                setPrices(data);
+            } catch (e) {
+                console.error("Failed to parse price message", e);
+            }
+        }
+    }, [lastMessage]);
 
-        ws.onopen = () => {
-            console.log('Connected to WebSocket');
-            setIsConnected(true);
-        };
+    const connectionStatus = {
+        [ReadyState.CONNECTING]: 'Connecting',
+        [ReadyState.OPEN]: 'Open',
+        [ReadyState.CLOSING]: 'Closing',
+        [ReadyState.CLOSED]: 'Closed',
+        [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
+    }[readyState];
 
-        ws.onmessage = (event) => {
-            setLastMessage(event.data);
-        };
-
-        ws.onclose = () => {
-            console.log('Disconnected from WebSocket');
-            setIsConnected(false);
-        };
-
-        return () => {
-            ws.close();
-        };
-    }, []);
-
-    return { lastMessage, isConnected };
+    return {
+        prices,
+        isConnected: readyState === ReadyState.OPEN,
+        connectionStatus
+    };
 };

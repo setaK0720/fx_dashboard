@@ -38,6 +38,11 @@ class MT5Client:
         if not self.connected:
             return None
         
+        # Ensure symbol is selected
+        if not mt5.symbol_select(symbol, True):
+            logger.warning(f"Failed to select symbol {symbol}")
+            return None
+        
         tick = mt5.symbol_info_tick(symbol)
         if tick is None:
             logger.warning(f"Failed to get tick for {symbol}")

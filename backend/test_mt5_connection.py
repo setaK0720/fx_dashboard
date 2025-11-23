@@ -3,7 +3,7 @@ import json
 import os
 
 ACCOUNT_INFO_PATH = r"D:\FX\forex_mytools\AccountInfo.json"
-TARGET_ACCOUNT = "XM_Micro_BariBali"
+TARGET_ACCOUNT = "XM_Demo"
 
 def load_account_info():
     if not os.path.exists(ACCOUNT_INFO_PATH):

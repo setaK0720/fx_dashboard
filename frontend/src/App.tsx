@@ -6,6 +6,8 @@ import { PositionTable } from './features/dashboard/PositionTable'
 import { OrderForm } from './features/dashboard/OrderForm'
 import { BacktestPanel } from './features/dashboard/BacktestPanel'
 
+import { Toaster } from './components/ui/toaster'
+
 function App() {
   return (
     <ChakraProvider value={defaultSystem}>
@@ -24,6 +26,7 @@ function App() {
         </Box>
         <PositionTable />
       </DashboardLayout>
+      <Toaster />
     </ChakraProvider>
   )
 }

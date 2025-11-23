@@ -53,7 +53,17 @@
 - **Manual Verification**: `backend/test_backtest.py` を実行し、MT5からデータを取得してシミュレーションが完了することを確認。
 - **Frontend**: 設定項目（通貨ペア、期間など）を入力して実行し、結果が表示されることを確認（ブラウザ検証はタイムアウトしたがバックエンドは正常動作）。
 
-![Backtest Verification](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/backtest_verification_final_1763880832710.webp)
+### デモ口座接続検証
+ユーザー指定の `XM_Demo` 口座への接続およびデータ取得を検証しました。
+- **Connection**: `backend/test_mt5_connection.py` にて接続成功を確認。
+- **Data Retrieval**: `backend/test_backtest.py` にてDemo口座からヒストリカルデータを取得し、バックテストが完了することを確認。
+
+### BTCUSDリアルタイム表示検証
+Botの監視対象およびフロントエンドの表示対象をBTCUSDに変更し、リアルタイムレートが表示されることを確認しました。
+- **RatePanel**: BTCUSDの価格がリアルタイムで更新されることを確認。
+- **BacktestPanel**: デフォルトのシンボルがBTCUSDになっていることを確認。
+
+![BTCUSD Verification](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/btcusd_final_view_1763882617015.png)
 
 ## 今後の展望
 - **認証機能**: ログイン画面の実装（今回はスキップ）。

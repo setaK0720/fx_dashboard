@@ -4,9 +4,8 @@ import { runBacktest } from '../../lib/api';
 import type { BacktestRequest, BacktestResponse } from '../../lib/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-
 export const BacktestPanel = () => {
-    const [symbol, setSymbol] = useState('USD/JPY');
+    const [symbol, setSymbol] = useState('BTCUSD');
     const [timeframe, setTimeframe] = useState('M1');
     const [periodDays, setPeriodDays] = useState('30');
     const [isLoading, setIsLoading] = useState(false);
@@ -42,9 +41,10 @@ export const BacktestPanel = () => {
                     <Text fontSize="sm" mb={1}>Symbol</Text>
                     <NativeSelect.Root size="sm" variant="outline">
                         <NativeSelect.Field value={symbol} onChange={(e) => setSymbol(e.target.value)} bg="gray.700" borderColor="gray.600">
-                            <option value="USD/JPY">USD/JPY</option>
-                            <option value="EUR/USD">EUR/USD</option>
-                            <option value="GBP/USD">GBP/USD</option>
+                            <option value="BTCUSD">BTCUSD</option>
+                            <option value="USDJPY">USDJPY</option>
+                            <option value="EURUSD">EURUSD</option>
+                            <option value="GBPUSD">GBPUSD</option>
                         </NativeSelect.Field>
                         <NativeSelect.Indicator />
                     </NativeSelect.Root>
