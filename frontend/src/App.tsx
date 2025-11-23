@@ -6,6 +6,7 @@ import { PositionTable } from './features/dashboard/PositionTable'
 import { OrderForm } from './features/dashboard/OrderForm'
 import { BacktestPanel } from './features/dashboard/BacktestPanel'
 import { AccountPanel } from './features/account/AccountPanel'
+import { AccountInfoWidget } from './features/dashboard/AccountInfoWidget'
 import { useState } from 'react'
 
 import { Toaster } from './components/ui/toaster'
@@ -20,6 +21,9 @@ function App() {
         {currentView === 'dashboard' ? (
           <>
             <RatePanel selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />
+            <Box mb={6}>
+              <AccountInfoWidget />
+            </Box>
             <SimpleGrid columns={{ base: 1, lg: 3 }} gap={6} mb={6}>
               <Box gridColumn={{ lg: "span 2" }}>
                 <ChartWidget symbol={selectedSymbol} />
@@ -43,7 +47,6 @@ function App() {
 }
 
 export default App
-
 
 
 

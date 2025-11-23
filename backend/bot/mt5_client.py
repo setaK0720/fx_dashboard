@@ -85,6 +85,30 @@ class MT5Client:
             "time": tick.time
         }
 
+    def get_account_info(self):
+        if not self.connected:
+            return None
+        
+        info = mt5.account_info()
+        if info is None:
+            logger.warning("Failed to get account info")
+            return None
+        
+        return {
+            "balance": info.balance,
+            "equity": info.equity,
+            "margin": info.margin,
+            "margin_free": info.margin_free,
+            "margin_level": info.margin_level,
+            "profit": info.profit,
+            "credit": info.credit,
+            "currency": info.currency,
+            "leverage": info.leverage,
+            "name": info.name,
+            "server": info.server,
+            "login": info.login
+        }
+
     def get_positions(self):
         if not self.connected:
             return []

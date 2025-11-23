@@ -34,9 +34,14 @@ class ConnectionManager:
 
     async def broadcast(self, message: str):
         for connection in self.active_connections:
-            await connection.send_text(message)
+            try:
+                await connection.send_text(message)
+            except Exception:
+                # Handle disconnected clients gracefully
+                pass
 
-manager = ConnectionManager()
+price_manager = ConnectionManager()
+account_manager = ConnectionManager()
 
 import asyncio
 import json
@@ -114,6 +119,7 @@ async def on_startup():
     else:
         print("Failed to connect to MT5")
     asyncio.create_task(broadcast_prices())
+    asyncio.create_task(broadcast_account_info())
 
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -121,7 +127,7 @@ async def on_shutdown():
 
 async def broadcast_prices():
     while True:
-        if manager.active_connections:
+        if price_manager.active_connections:
             # Fetch real rates from MT5
             symbols = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD"]
             price_data = {}
@@ -137,7 +143,7 @@ async def broadcast_prices():
                     pass
             
             if price_data:
-                await manager.broadcast(json.dumps(price_data))
+                await price_manager.broadcast(json.dumps(price_data))
         
         await asyncio.sleep(1)
 
@@ -200,15 +206,34 @@ async def switch_account(request: AccountSwitchRequest):
 
 @app.websocket("/ws/prices")
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    await price_manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
             # Echo back for now, or broadcast if needed
             # In a real scenario, this would broadcast price updates from a background task or external source
-            await manager.broadcast(f"Price update: {data}")
+            await price_manager.broadcast(f"Price update: {data}")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        price_manager.disconnect(websocket)
+
+@app.websocket("/ws/account")
+async def websocket_account_endpoint(websocket: WebSocket):
+    await account_manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        account_manager.disconnect(websocket)
+
+async def broadcast_account_info():
+    while True:
+        if account_manager.active_connections:
+            info = mt5_client.get_account_info()
+            if info:
+                await account_manager.broadcast(json.dumps(info))
+        
+        await asyncio.sleep(1)
 
 
 
