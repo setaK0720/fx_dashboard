@@ -84,6 +84,12 @@ class MT5Client:
         
         result = []
         for pos in positions:
+            # MT5 server time is GMT+2 (XMTrading), need to convert to UTC
+            # pos.time is in server local time but represented as Unix timestamp
+            # We need to subtract the server offset to get true UTC
+            server_offset_hours = 2  # XMTrading is GMT+2 (GMT+3 during summer time)
+            utc_time = pos.time - (server_offset_hours * 3600)
+            
             result.append({
                 "id": pos.ticket,
                 "symbol": pos.symbol,
@@ -91,7 +97,7 @@ class MT5Client:
                 "volume": pos.volume,
                 "open_price": pos.price_open,
                 "current_price": pos.price_current,
-                "time": pos.time,
+                "time": utc_time,  # Now in UTC
                 "profit": pos.profit
             })
         return result

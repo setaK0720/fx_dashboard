@@ -22,18 +22,35 @@ export const PositionTable = () => {
     }, []);
 
     const formatTime = (timestamp: number) => {
-        return new Date(timestamp * 1000).toLocaleString('ja-JP');
+        // timestamp is Unix time in seconds from MT5
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleString('ja-JP', {
+            timeZone: 'Asia/Tokyo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
     };
 
     const formatElapsed = (timestamp: number) => {
-        const diff = Math.floor((now / 1000) - timestamp);
-        if (diff < 0) return '0s';
+        // Both now and timestamp should be in seconds
+        const currentTimeSeconds = Math.floor(Date.now() / 1000);
+        const diff = currentTimeSeconds - timestamp;
+
+        // If diff is negative or unreasonably large, something is wrong
+        if (diff < 0 || diff > 86400 * 365) {
+            console.warn('Invalid time diff:', { currentTimeSeconds, timestamp, diff });
+            return '0s';
+        }
 
         const hours = Math.floor(diff / 3600);
         const minutes = Math.floor((diff % 3600) / 60);
         const seconds = diff % 60;
 
-        if (hours > 0) return `${hours}h ${minutes}m`;
+        if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
         if (minutes > 0) return `${minutes}m ${seconds}s`;
         return `${seconds}s`;
     };
@@ -76,5 +93,3 @@ export const PositionTable = () => {
         </Box>
     );
 };
-
-

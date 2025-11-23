@@ -152,7 +152,7 @@ async def get_status(db: AsyncSession = Depends(get_db)):
     return {"is_running": False, "message": "No status data", "last_updated": None}
 
 @app.get("/api/positions")
-async def get_positions():
+def get_positions():  # Changed from async def to def
     # Get real-time positions from MT5
     positions = mt5_client.get_positions()
     return positions
@@ -161,7 +161,7 @@ class AccountSwitchRequest(BaseModel):
     account_name: str
 
 @app.get("/api/accounts")
-async def get_accounts():
+def get_accounts():  # Changed from async def to def
     from bot.config import get_available_accounts, load_account_config
     
     # Get all account names
