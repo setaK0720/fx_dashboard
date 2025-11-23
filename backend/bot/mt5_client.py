@@ -51,26 +51,37 @@ class MT5Client:
         except Exception as e:
             logger.error(f"Failed to switch account: {e}")
             return False
+    
+    def normalize_symbol(self, symbol):
+        """Normalize symbol name for XM broker (e.g., XAUUSD -> GOLD)"""
+        # XM uses "GOLD" instead of "XAUUSD"
+        if self.server and "XMTrading" in self.server:
+            if symbol == "XAUUSD":
+                return "GOLD"
+        return symbol
 
     def get_rates(self, symbol):
         if not self.connected:
             return None
         
+        # Normalize symbol for broker (e.g., XAUUSD -> GOLD for XM)
+        normalized_symbol = self.normalize_symbol(symbol)
+        
         # Ensure symbol is selected
-        if not mt5.symbol_select(symbol, True):
-            logger.warning(f"Failed to select symbol {symbol}")
+        if not mt5.symbol_select(normalized_symbol, True):
+            logger.warning(f"Failed to select symbol {normalized_symbol}")
             return None
         
-        tick = mt5.symbol_info_tick(symbol)
+        tick = mt5.symbol_info_tick(normalized_symbol)
         if tick is None:
-            logger.warning(f"Failed to get tick for {symbol}")
+            logger.warning(f"Failed to get tick for {normalized_symbol}")
             return None
         
         return {
-            "symbol": symbol,
+            "symbol": symbol,  # Return original symbol name for frontend
             "bid": tick.bid,
             "ask": tick.ask,
-            "spread": int(round((tick.ask - tick.bid) / mt5.symbol_info(symbol).point)) if mt5.symbol_info(symbol) else 0,
+            "spread": int(round((tick.ask - tick.bid) / mt5.symbol_info(normalized_symbol).point)) if mt5.symbol_info(normalized_symbol) else 0,
             "time": tick.time
         }
 
@@ -129,5 +140,3 @@ class MT5Client:
             return None
         
         return rates
-
-

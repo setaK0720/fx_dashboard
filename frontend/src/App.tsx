@@ -12,16 +12,17 @@ import { Toaster } from './components/ui/toaster'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard')
+  const [selectedSymbol, setSelectedSymbol] = useState('BTCUSD')
 
   return (
     <ChakraProvider value={defaultSystem}>
       <DashboardLayout currentView={currentView} onNavigate={setCurrentView}>
         {currentView === 'dashboard' ? (
           <>
-            <RatePanel />
+            <RatePanel selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />
             <SimpleGrid columns={{ base: 1, lg: 3 }} gap={6} mb={6}>
               <Box gridColumn={{ lg: "span 2" }}>
-                <ChartWidget />
+                <ChartWidget symbol={selectedSymbol} />
               </Box>
               <Box>
                 <OrderForm />

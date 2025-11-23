@@ -10,10 +10,14 @@ const data = [
     { time: '10:25', price: 150.06 },
 ];
 
-export const ChartWidget = () => {
+interface ChartWidgetProps {
+    symbol: string;
+}
+
+export const ChartWidget = ({ symbol }: ChartWidgetProps) => {
     return (
         <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700" height="400px" mb={6}>
-            <Text fontSize="lg" fontWeight="bold" mb={4}>USD/JPY Chart</Text>
+            <Text fontSize="lg" fontWeight="bold" mb={4}>{symbol} Chart</Text>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />

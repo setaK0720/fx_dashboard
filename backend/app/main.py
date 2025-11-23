@@ -123,7 +123,7 @@ async def broadcast_prices():
     while True:
         if manager.active_connections:
             # Fetch real rates from MT5
-            symbols = ["BTCUSD", "USDJPY", "EURUSD"]
+            symbols = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD"]
             price_data = {}
             
             for symbol in symbols:
