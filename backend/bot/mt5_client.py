@@ -91,6 +91,7 @@ class MT5Client:
                 "volume": pos.volume,
                 "open_price": pos.price_open,
                 "current_price": pos.price_current,
+                "time": pos.time,
                 "profit": pos.profit
             })
         return result

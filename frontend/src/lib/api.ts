@@ -13,6 +13,7 @@ export interface Position {
     volume: number;
     open_price: number;
     current_price: number;
+    time: number; // Unix timestamp
     profit: number;
 }
 

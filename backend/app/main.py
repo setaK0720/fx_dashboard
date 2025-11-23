@@ -152,10 +152,9 @@ async def get_status(db: AsyncSession = Depends(get_db)):
     return {"is_running": False, "message": "No status data", "last_updated": None}
 
 @app.get("/api/positions")
-async def get_positions(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Position))
-    positions = result.scalars().all()
-    positions = result.scalars().all()
+async def get_positions():
+    # Get real-time positions from MT5
+    positions = mt5_client.get_positions()
     return positions
 
 class AccountSwitchRequest(BaseModel):
@@ -163,9 +162,31 @@ class AccountSwitchRequest(BaseModel):
 
 @app.get("/api/accounts")
 async def get_accounts():
-    from bot.config import get_available_accounts
+    from bot.config import get_available_accounts, load_account_config
+    
+    # Get all account names
+    account_names = get_available_accounts()
+    
+    # Load details for each account
+    accounts_details = []
+    for acc_name in account_names:
+        try:
+            config = load_account_config(acc_name)
+            accounts_details.append({
+                "name": acc_name,
+                "account_number": config.get("AccountNumber"),
+                "server": config.get("Server")
+            })
+        except Exception:
+            # If loading fails, just include name
+            accounts_details.append({
+                "name": acc_name,
+                "account_number": None,
+                "server": None
+            })
+    
     return {
-        "accounts": get_available_accounts(),
+        "accounts": accounts_details,
         "current_account": mt5_client.current_account_name,
         "connected": mt5_client.connected
     }

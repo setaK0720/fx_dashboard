@@ -32,9 +32,6 @@ export const Sidebar = ({ currentView, onNavigate }: SidebarProps) => {
                     <Text fontWeight="bold">Account</Text>
                 </Link>
                 <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
-                    <Text>Positions</Text>
-                </Link>
-                <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
                     <Text>Settings</Text>
                 </Link>
             </VStack>

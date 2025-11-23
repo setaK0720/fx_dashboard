@@ -77,6 +77,14 @@ Botの監視対象およびフロントエンドの表示対象をBTCUSDに変�
 
 ![Account Panel](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/account_panel_view_1763895419802.png)
 
+### ポジション表示機能更新
+- **PositionTable**: カラムを「Time, Elapsed, Symbol, Type, Lot, Price, Profit」に更新。
+- **Elapsed Time**: ポジション取得からの経過時間をリアルタイムで計算・表示（例: `2h 15m`）。
+- **Sidebar**: 不要になった「Positions」メニューを削除。
+- **検証**: ブラウザ上で新しいカラム構成と経過時間の表示を確認しました。
+
+![Position Table](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/position_table_view_1763896877196.png)
+
 ## 今後の展望
 - **認証機能**: ログイン画面の実装（今回はスキップ）。
 - **履歴表示**: 過去の取引履歴のグラフ化。

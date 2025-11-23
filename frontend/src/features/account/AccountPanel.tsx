@@ -2,8 +2,14 @@ import { Box, Heading, VStack, Text, Button, Badge, HStack, Spinner } from '@cha
 import { useEffect, useState } from 'react';
 import { toaster } from '../../components/ui/toaster';
 
+interface AccountDetail {
+    name: string;
+    account_number: number | null;
+    server: string | null;
+}
+
 interface AccountInfo {
-    accounts: string[];
+    accounts: AccountDetail[];
     current_account: string;
     connected: boolean;
 }
@@ -71,17 +77,27 @@ export const AccountPanel = () => {
             <VStack align="stretch" gap={3}>
                 {info.accounts.map(account => (
                     <Box
-                        key={account}
+                        key={account.name}
                         p={3}
                         bg="gray.700"
                         borderRadius="md"
-                        borderWidth={account === info.current_account ? "2px" : "1px"}
-                        borderColor={account === info.current_account ? "teal.400" : "gray.600"}
+                        borderWidth={account.name === info.current_account ? "2px" : "1px"}
+                        borderColor={account.name === info.current_account ? "teal.400" : "gray.600"}
                     >
                         <HStack justify="space-between">
-                            <VStack align="start" gap={0}>
-                                <Text fontWeight="bold" fontSize="lg">{account}</Text>
-                                {account === info.current_account && (
+                            <VStack align="start" gap={1}>
+                                <Text fontWeight="bold" fontSize="lg">{account.name}</Text>
+                                {account.account_number && (
+                                    <Text fontSize="sm" color="gray.400">
+                                        口座番号: {account.account_number}
+                                    </Text>
+                                )}
+                                {account.server && (
+                                    <Text fontSize="sm" color="gray.400">
+                                        サーバー: {account.server}
+                                    </Text>
+                                )}
+                                {account.name === info.current_account && (
                                     <Badge colorPalette={info.connected ? "green" : "red"}>
                                         {info.connected ? "Connected" : "Disconnected"}
                                     </Badge>
@@ -90,11 +106,11 @@ export const AccountPanel = () => {
 
                             <Button
                                 size="sm"
-                                colorPalette={account === info.current_account ? "gray" : "teal"}
-                                disabled={account === info.current_account || loading}
-                                onClick={() => handleSwitch(account)}
+                                colorPalette={account.name === info.current_account ? "gray" : "teal"}
+                                disabled={account.name === info.current_account || loading}
+                                onClick={() => handleSwitch(account.name)}
                             >
-                                {loading && account !== info.current_account ? <Spinner size="xs" /> : (account === info.current_account ? "Active" : "Switch")}
+                                {loading && account.name !== info.current_account ? <Spinner size="xs" /> : (account.name === info.current_account ? "Active" : "Switch")}
                             </Button>
                         </HStack>
                     </Box>
