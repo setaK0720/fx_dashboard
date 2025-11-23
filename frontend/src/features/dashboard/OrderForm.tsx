@@ -51,22 +51,24 @@ export const OrderForm = () => {
                                     {symbol} <Box as="span">▼</Box>
                                 </Button>
                             </Menu.Trigger>
-                            <Menu.Content bg="gray.700" borderColor="gray.600" minW="content" zIndex={1000}>
-                                {["BTCUSD", "USDJPY", "EURUSD", "GBPUSD", "XAUUSD"].map((s) => (
-                                    <Menu.Item
-                                        key={s}
-                                        value={s}
-                                        onClick={() => setSymbol(s)}
-                                        bg="gray.700"
-                                        color="white"
-                                        _hover={{ bg: "gray.600" }}
-                                        cursor="pointer"
-                                        p={2}
-                                    >
-                                        {s}
-                                    </Menu.Item>
-                                ))}
-                            </Menu.Content>
+                            <Menu.Positioner>
+                                <Menu.Content bg="gray.700" borderColor="gray.600" minW="content" zIndex={1000}>
+                                    {["BTCUSD", "USDJPY", "EURUSD", "GBPUSD", "XAUUSD"].map((s) => (
+                                        <Menu.Item
+                                            key={s}
+                                            value={s}
+                                            onClick={() => setSymbol(s)}
+                                            bg="gray.700"
+                                            color="white"
+                                            _hover={{ bg: "gray.600" }}
+                                            cursor="pointer"
+                                            p={2}
+                                        >
+                                            {s}
+                                        </Menu.Item>
+                                    ))}
+                                </Menu.Content>
+                            </Menu.Positioner>
                         </Menu.Root>
                     </Box>
 

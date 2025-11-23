@@ -30,25 +30,27 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
                         {selectedSymbol} <Box as="span">▼</Box>
                     </Button>
                 </Menu.Trigger>
-                <Menu.Content bg="#2D3748" borderColor="#4A5568" minW="200px" zIndex={1000}>
-                    {AVAILABLE_SYMBOLS.map(symbol => (
-                        <Menu.Item
-                            key={symbol}
-                            value={symbol}
-                            onClick={() => onSymbolChange(symbol)}
-                            bg="#2D3748"
-                            color="white"
-                            _hover={{ bg: "#4A5568" }}
-                            cursor="pointer"
-                            p={2}
-                        >
-                            {symbol}
-                        </Menu.Item>
-                    ))}
-                </Menu.Content>
+                <Menu.Positioner>
+                    <Menu.Content bg="#2D3748" borderColor="#4A5568" minW="200px" zIndex={1000}>
+                        {AVAILABLE_SYMBOLS.map(symbol => (
+                            <Menu.Item
+                                key={symbol}
+                                value={symbol}
+                                onClick={() => onSymbolChange(symbol)}
+                                bg="#2D3748"
+                                color="white"
+                                _hover={{ bg: "#4A5568" }}
+                                cursor="pointer"
+                                p={2}
+                            >
+                                {symbol}
+                            </Menu.Item>
+                        ))}
+                    </Menu.Content>
+                </Menu.Positioner>
             </Menu.Root>
 
-            <Box p={3} bg="gray.700" borderRadius="md">
+            <Box p={3} bg="gray.700" borderRadius="md" mt={6}>
                 <Stat.Root>
                     <Stat.Label fontSize="lg" fontWeight="bold">{selectedSymbol}</Stat.Label>
                     <HStack justify="space-between" mt={2}>
