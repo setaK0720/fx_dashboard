@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect, HTTPException
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import init_db, get_db
@@ -13,7 +14,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -128,8 +129,8 @@ async def broadcast_prices():
             for symbol in symbols:
                 rate = mt5_client.get_rates(symbol)
                 if rate:
-                    # Use bid price for display
-                    price_data[symbol] = rate["bid"]
+                    # Send full rate data (bid, ask, spread)
+                    price_data[symbol] = rate
                 else:
                     # Fallback or keep previous if needed, for now just skip or use 0
                     # To avoid UI flickering, we might want to maintain last known state
@@ -154,7 +155,27 @@ async def get_status(db: AsyncSession = Depends(get_db)):
 async def get_positions(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Position))
     positions = result.scalars().all()
+    positions = result.scalars().all()
     return positions
+
+class AccountSwitchRequest(BaseModel):
+    account_name: str
+
+@app.get("/api/accounts")
+async def get_accounts():
+    from bot.config import get_available_accounts
+    return {
+        "accounts": get_available_accounts(),
+        "current_account": mt5_client.current_account_name,
+        "connected": mt5_client.connected
+    }
+
+@app.post("/api/accounts/switch")
+async def switch_account(request: AccountSwitchRequest):
+    success = mt5_client.switch_account(request.account_name)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to switch account")
+    return {"message": f"Switched to {request.account_name}", "connected": True}
 
 @app.websocket("/ws/prices")
 async def websocket_endpoint(websocket: WebSocket):

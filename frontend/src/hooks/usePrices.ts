@@ -3,12 +3,20 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 const WS_URL = 'ws://localhost:8000/ws/prices';
 
+export interface PriceData {
+    symbol: string;
+    bid: number;
+    ask: number;
+    spread: number;
+    time: number;
+}
+
 export const usePrices = () => {
     const { lastMessage, readyState } = useWebSocket(WS_URL, {
         shouldReconnect: () => true,
     });
 
-    const [prices, setPrices] = useState<Record<string, number>>({});
+    const [prices, setPrices] = useState<Record<string, PriceData>>({});
 
     useEffect(() => {
         if (lastMessage !== null) {

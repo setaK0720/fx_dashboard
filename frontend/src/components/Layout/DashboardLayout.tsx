@@ -5,14 +5,16 @@ import type { ReactNode } from 'react';
 
 interface DashboardLayoutProps {
     children: ReactNode;
+    currentView: string;
+    onNavigate: (view: string) => void;
 }
 
-export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+export const DashboardLayout = ({ children, currentView, onNavigate }: DashboardLayoutProps) => {
     return (
         <Box minH="100vh" bg="gray.900">
             <Header />
             <Flex>
-                <Sidebar />
+                <Sidebar currentView={currentView} onNavigate={onNavigate} />
                 <Box flex="1" p={6} color="white">
                     {children}
                 </Box>

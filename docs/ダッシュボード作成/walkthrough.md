@@ -65,6 +65,18 @@ Botの監視対象およびフロントエンドの表示対象をBTCUSDに変�
 
 ![BTCUSD Verification](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/btcusd_final_view_1763882617015.png)
 
+### レート表示機能強化
+- **RatePanel**: シンボル選択機能（チェックボックス）を追加し、Bid/Ask/Spreadの詳細表示に対応しました。
+- **Backend**: WebSocket配信データを拡張し、スプレッド情報を含むように変更しました。
+- **検証**: `backend/verify_websocket.py` にて、Bid/Ask/Spreadを含むデータが正しく配信されていることを確認しました。
+
+### 口座切り替え機能
+- **AccountPanel**: サイドバーに「Account」メニューを追加し、利用可能な口座一覧を表示。
+- **機能**: ボタンクリックでMT5の接続先口座を切り替えられることを確認。
+- **検証**: ブラウザ上で口座一覧が表示され、現在接続中の口座がハイライトされることを確認しました。
+
+![Account Panel](/C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/account_panel_view_1763895419802.png)
+
 ## 今後の展望
 - **認証機能**: ログイン画面の実装（今回はスキップ）。
 - **履歴表示**: 過去の取引履歴のグラフ化。

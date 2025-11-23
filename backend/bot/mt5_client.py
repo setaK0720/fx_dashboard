@@ -1,5 +1,5 @@
 import MetaTrader5 as mt5
-from bot.config import load_account_config
+from bot.config import load_account_config, TARGET_ACCOUNT
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -12,6 +12,7 @@ class MT5Client:
         self.password = self.config["Password"]
         self.server = self.config["Server"]
         self.path = self.config["MT5Path"]
+        self.current_account_name = TARGET_ACCOUNT
         self.connected = False
 
     def connect(self):
@@ -34,6 +35,23 @@ class MT5Client:
         self.connected = False
         logger.info("Disconnected from MT5")
 
+    def switch_account(self, account_name):
+        logger.info(f"Switching to account: {account_name}")
+        if self.connected:
+            self.disconnect()
+        
+        try:
+            self.config = load_account_config(account_name)
+            self.account = self.config["AccountNumber"]
+            self.password = self.config["Password"]
+            self.server = self.config["Server"]
+            self.path = self.config["MT5Path"]
+            self.current_account_name = account_name
+            return self.connect()
+        except Exception as e:
+            logger.error(f"Failed to switch account: {e}")
+            return False
+
     def get_rates(self, symbol):
         if not self.connected:
             return None
@@ -52,6 +70,7 @@ class MT5Client:
             "symbol": symbol,
             "bid": tick.bid,
             "ask": tick.ask,
+            "spread": int(round((tick.ask - tick.bid) / mt5.symbol_info(symbol).point)) if mt5.symbol_info(symbol) else 0,
             "time": tick.time
         }
 

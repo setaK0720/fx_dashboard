@@ -12,8 +12,11 @@ async def listen():
                 print(f"Received: {message}")
                 data = json.loads(message)
                 if "BTCUSD" in data:
-                    print("BTCUSD data found!")
-                    break
+                    btc_data = data["BTCUSD"]
+                    print(f"BTCUSD Data: {btc_data}")
+                    if "bid" in btc_data and "ask" in btc_data and "spread" in btc_data:
+                        print("BTCUSD data has bid, ask, and spread!")
+                        break
         except Exception as e:
             print(f"Error: {e}")
 

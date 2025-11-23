@@ -1,6 +1,18 @@
 import { Box, VStack, Link, Text } from '@chakra-ui/react';
 
-export const Sidebar = () => {
+interface SidebarProps {
+    currentView: string;
+    onNavigate: (view: string) => void;
+}
+
+export const Sidebar = ({ currentView, onNavigate }: SidebarProps) => {
+    const linkStyle = (view: string) => ({
+        textDecoration: 'none',
+        color: currentView === view ? 'teal.300' : 'white',
+        _hover: { color: 'teal.200' },
+        cursor: 'pointer'
+    });
+
     return (
         <Box
             w="250px"
@@ -13,8 +25,11 @@ export const Sidebar = () => {
             display={{ base: 'none', md: 'block' }}
         >
             <VStack align="stretch" gap={4}>
-                <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
+                <Link onClick={() => onNavigate('dashboard')} {...linkStyle('dashboard')}>
                     <Text fontWeight="bold">Dashboard</Text>
+                </Link>
+                <Link onClick={() => onNavigate('account')} {...linkStyle('account')}>
+                    <Text fontWeight="bold">Account</Text>
                 </Link>
                 <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
                     <Text>Positions</Text>
