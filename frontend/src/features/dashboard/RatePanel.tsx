@@ -1,4 +1,4 @@
-import { Box, Heading, Stat, HStack } from '@chakra-ui/react';
+import { Box, Heading, Stat, HStack, Menu, Button } from '@chakra-ui/react';
 import { usePrices } from '../../hooks/usePrices';
 
 const AVAILABLE_SYMBOLS = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD"];
@@ -16,24 +16,37 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
         <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700">
             <Heading size="md" mb={4}>ライブレート {isConnected ? '(接続中)' : '(切断時)'}</Heading>
 
-            <HStack gap={4} mb={6}>
-                <select
-                    value={selectedSymbol}
-                    onChange={(e) => onSymbolChange(e.target.value)}
-                    style={{
-                        width: '200px',
-                        padding: '8px',
-                        borderRadius: '4px',
-                        background: '#2D3748',
-                        color: 'white',
-                        border: '1px solid #4A5568'
-                    }}
-                >
+            <Menu.Root>
+                <Menu.Trigger asChild>
+                    <Button
+                        variant="outline"
+                        width="200px"
+                        justifyContent="space-between"
+                        bg="#2D3748"
+                        color="white"
+                        borderColor="#4A5568"
+                        _hover={{ bg: "#4A5568" }}
+                    >
+                        {selectedSymbol} <Box as="span">▼</Box>
+                    </Button>
+                </Menu.Trigger>
+                <Menu.Content bg="#2D3748" borderColor="#4A5568" minW="200px" zIndex={1000}>
                     {AVAILABLE_SYMBOLS.map(symbol => (
-                        <option key={symbol} value={symbol}>{symbol}</option>
+                        <Menu.Item
+                            key={symbol}
+                            value={symbol}
+                            onClick={() => onSymbolChange(symbol)}
+                            bg="#2D3748"
+                            color="white"
+                            _hover={{ bg: "#4A5568" }}
+                            cursor="pointer"
+                            p={2}
+                        >
+                            {symbol}
+                        </Menu.Item>
                     ))}
-                </select>
-            </HStack>
+                </Menu.Content>
+            </Menu.Root>
 
             <Box p={3} bg="gray.700" borderRadius="md">
                 <Stat.Root>

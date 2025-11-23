@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading, Input, Stack, Text, NativeSelect } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Input, Stack, Text, Menu } from '@chakra-ui/react';
 import { useState } from 'react';
 import { placeOrder } from '../../lib/api';
 import { toaster } from '../../components/ui/toaster';
@@ -37,15 +37,37 @@ export const OrderForm = () => {
                 <Stack gap={4}>
                     <Box>
                         <Text mb={1}>Symbol</Text>
-                        <NativeSelect.Root variant="outline">
-                            <NativeSelect.Field value={symbol} onChange={(e) => setSymbol(e.target.value)} bg="gray.700" borderColor="gray.600">
-                                <option value="BTCUSD">BTCUSD</option>
-                                <option value="USDJPY">USDJPY</option>
-                                <option value="EURUSD">EURUSD</option>
-                                <option value="GBPUSD">GBPUSD</option>
-                            </NativeSelect.Field>
-                            <NativeSelect.Indicator />
-                        </NativeSelect.Root>
+                        <Menu.Root>
+                            <Menu.Trigger asChild>
+                                <Button
+                                    variant="outline"
+                                    width="full"
+                                    justifyContent="space-between"
+                                    bg="gray.700"
+                                    borderColor="gray.600"
+                                    color="white"
+                                    _hover={{ bg: "gray.600" }}
+                                >
+                                    {symbol} <Box as="span">▼</Box>
+                                </Button>
+                            </Menu.Trigger>
+                            <Menu.Content bg="gray.700" borderColor="gray.600" minW="content" zIndex={1000}>
+                                {["BTCUSD", "USDJPY", "EURUSD", "GBPUSD", "XAUUSD"].map((s) => (
+                                    <Menu.Item
+                                        key={s}
+                                        value={s}
+                                        onClick={() => setSymbol(s)}
+                                        bg="gray.700"
+                                        color="white"
+                                        _hover={{ bg: "gray.600" }}
+                                        cursor="pointer"
+                                        p={2}
+                                    >
+                                        {s}
+                                    </Menu.Item>
+                                ))}
+                            </Menu.Content>
+                        </Menu.Root>
                     </Box>
 
                     <Box>
