@@ -38,6 +38,66 @@ import asyncio
 import json
 import random
 
+import uuid
+from app.schemas import OrderCreate, OrderResponse, BacktestRequest, BacktestResponse
+from bot.backtester import run_backtest
+
+@app.post("/api/orders", response_model=OrderResponse)
+async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
+    # ... (existing order logic) ...
+    # Simulation logic
+    order_id = str(uuid.uuid4())
+    
+    # Determine mock price based on symbol
+    base_price = 150.00 if "JPY" in order.symbol else 1.0800
+    # Add some random variation
+    open_price = round(base_price + random.uniform(-0.05, 0.05), 3 if "JPY" in order.symbol else 5)
+    
+    # Initial spread cost (mock)
+    spread = 0.003 if "JPY" in order.symbol else 0.00003
+    current_price = open_price - spread if order.order_type == "BUY" else open_price + spread
+    
+    # Calculate initial profit (negative due to spread)
+    diff = (current_price - open_price) if order.order_type == "BUY" else (open_price - current_price)
+    profit = diff * order.volume * 100000
+    if "JPY" in order.symbol:
+        profit /= 100 # Adjust for JPY pairs (usually 100 units per pip, but simplified here)
+
+    new_position = Position(
+        symbol=order.symbol,
+        type=order.order_type,
+        volume=order.volume,
+        open_price=open_price,
+        current_price=round(current_price, 3 if "JPY" in order.symbol else 5),
+        profit=round(profit, 0)
+    )
+    
+    db.add(new_position)
+    await db.commit()
+    
+    return OrderResponse(
+        order_id=order_id,
+        status="FILLED",
+        message=f"Order executed: {order.order_type} {order.symbol} @ {open_price}"
+    )
+
+@app.post("/api/backtest", response_model=BacktestResponse)
+async def run_backtest_endpoint(request: BacktestRequest):
+    try:
+        result = run_backtest(
+            request.symbol,
+            request.timeframe,
+            request.period_days,
+            request.initial_cash,
+            request.short_window,
+            request.long_window
+        )
+        return BacktestResponse(**result)
+    except Exception as e:
+        # In a real app, handle specific errors
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.on_event("startup")
 async def on_startup():
     await init_db()
