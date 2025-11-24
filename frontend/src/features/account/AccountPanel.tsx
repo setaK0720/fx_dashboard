@@ -20,7 +20,7 @@ export const AccountPanel = () => {
 
     const fetchAccounts = async () => {
         try {
-            const res = await fetch('http://localhost:8000/api/accounts');
+            const res = await fetch(`http://${window.location.hostname}:8000/api/accounts`);
             if (!res.ok) throw new Error('Failed to fetch accounts');
             const data = await res.json();
             setInfo(data);
@@ -42,7 +42,7 @@ export const AccountPanel = () => {
 
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/api/accounts/switch', {
+            const res = await fetch(`http://${window.location.hostname}:8000/api/accounts/switch`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ account_name: accountName }),
