@@ -37,6 +37,17 @@ export const PositionTable = () => {
             await closePosition(ticket);
             loadPositions(); // Reload after close
         } catch (error) {
+            alert('Failed to close position');
+        }
+    };
+
+    const handleBulkClose = async (type: 'BUY' | 'SELL' | 'ALL') => {
+        setLoading(true);
+        try {
+            await closeAllPositions(type);
+            loadPositions();
+        } catch (error) {
+            console.error('Failed to close positions:', error);
             alert('Failed to close positions');
         } finally {
             setLoading(false);
