@@ -82,7 +82,6 @@ export const PositionTable = () => {
 
         // If diff is negative or unreasonably large, something is wrong
         if (diff < 0 || diff > 86400 * 365) {
-            // console.warn('Invalid time diff:', { currentTimeSeconds, timestamp, diff });
             return '0s';
         }
 
@@ -110,8 +109,9 @@ export const PositionTable = () => {
                 <HStack>
                     <Button
                         size="sm"
-                        colorPalette="blue"
-                        variant="solid"
+                        bg="blue.700"
+                        color="white"
+                        _hover={{ bg: "blue.800" }}
                         onClick={() => handleBulkClose('BUY')}
                         disabled={loading || !positions.some(p => p.type === 'BUY')}
                     >
@@ -119,8 +119,9 @@ export const PositionTable = () => {
                     </Button>
                     <Button
                         size="sm"
-                        colorPalette="red"
-                        variant="solid"
+                        bg="red.700"
+                        color="white"
+                        _hover={{ bg: "red.800" }}
                         onClick={() => handleBulkClose('SELL')}
                         disabled={loading || !positions.some(p => p.type === 'SELL')}
                     >
@@ -128,8 +129,9 @@ export const PositionTable = () => {
                     </Button>
                     <Button
                         size="sm"
-                        colorPalette="gray"
-                        variant="solid"
+                        bg="gray.800"
+                        color="white"
+                        _hover={{ bg: "gray.900" }}
                         onClick={() => handleBulkClose('ALL')}
                         disabled={loading || positions.length === 0}
                     >
@@ -139,16 +141,16 @@ export const PositionTable = () => {
             </Flex>
             <Box overflowX="auto">
                 <Table.Root variant="line" size="sm">
-                    <Table.Header>
-                        <Table.Row borderBottomColor="border.glass">
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Time</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Elapsed</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Symbol</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Type</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Lot</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Price</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Profit</Table.ColumnHeader>
-                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="center" borderBottomColor="border.glass">Action</Table.ColumnHeader>
+                    <Table.Header bg="gray.800">
+                        <Table.Row>
+                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Time</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Elapsed</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Symbol</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Type</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="right" bg="transparent">Lot</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="right" bg="transparent">Price</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="right" bg="transparent">Profit</Table.ColumnHeader>
+                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="center" bg="transparent">Action</Table.ColumnHeader>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
