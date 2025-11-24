@@ -25,3 +25,6 @@
     - ポジション一覧への反映を確認。
 
 ![Order Verification Result](C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/order_verification_result_1763945334917.png)
+
+- [x] 外部アクセス: ローカルIP (`http://192.168.1.104:5173`) でのアクセスを確認。
+![External Access Check](C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/external_access_check_1763980037366.png)
