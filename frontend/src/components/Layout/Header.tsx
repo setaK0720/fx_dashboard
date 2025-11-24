@@ -1,9 +1,13 @@
-import { Flex, Heading, Text, Box } from '@chakra-ui/react';
+import { Flex, Heading, Text, Box, IconButton } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { fetchStatus } from '../../lib/api';
 import type { BotStatus } from '../../lib/api';
 
-export const Header = () => {
+interface HeaderProps {
+    onMenuClick?: () => void;
+}
+
+export const Header = ({ onMenuClick }: HeaderProps) => {
     const [status, setStatus] = useState<BotStatus | null>(null);
 
     useEffect(() => {
@@ -26,14 +30,21 @@ export const Header = () => {
             borderColor="gray.700"
         >
             <Flex align="center" mr={5}>
+                <Box display={{ base: 'block', md: 'none' }} mr={4}>
+                    <IconButton
+                        aria-label="Open menu"
+                        variant="ghost"
+                        color="white"
+                        fontSize="20px"
+                        onClick={onMenuClick}
+                    >
+                        ☰
+                    </IconButton>
+                </Box>
                 <Heading as="h1" size="lg" letterSpacing={'-.1rem'}>
                     FX Dashboard
                 </Heading>
             </Flex>
-
-            <Box display={{ base: 'block', md: 'none' }}>
-                {/* Mobile menu icon could go here */}
-            </Box>
 
             <Box
                 display={{ base: 'none', md: 'flex' }}
