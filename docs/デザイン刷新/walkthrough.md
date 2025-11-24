@@ -1,0 +1,21 @@
+# デザイン刷新 (Glass & Violet)
+
+ユーザーが選択した「Glass & Violet」デザインを適用しました。
+
+## 変更点
+- **テーマ**: Deep Violet & Black Gradient, Glassmorphism
+- **レイアウト**: 高密度化 (Gap縮小, Padding縮小)
+- **コンポーネント**:
+    - **RatePanel**: グラスモーフィズム背景、ネオンボーダー
+    - **ChartWidget**: 透明背景、シアンのライン、カスタムツールチップ
+    - **OrderForm**: コンパクトな入力フォーム、バイオレットのアクセント
+    - **AccountInfoWidget**: 1行表示（高解像度時）、ステータスバッジ
+    - **PositionTable**: シンプルなライン表示、ホバーエフェクト
+    - **BacktestPanel**: デザイン統一
+
+## スクリーンショット
+![New Design View](C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/new_design_view_1763944217386.png)
+
+## 検証結果
+- [x] 全体的な見た目: 意図した「シックで未来的」なデザインになっていることを確認。
+- [x] レスポンシブ: モバイル表示でも崩れないことを確認（コードベース）。

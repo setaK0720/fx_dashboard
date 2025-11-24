@@ -31,36 +31,37 @@ export const OrderForm = () => {
     };
 
     return (
-        <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700">
-            <Heading size="md" mb={4}>New Order</Heading>
+        <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)">
+            <Heading size="sm" mb={2} color="text.main">New Order</Heading>
             <form onSubmit={handleSubmit}>
-                <Stack gap={4}>
+                <Stack gap={2}>
                     <Box>
-                        <Text mb={1}>Symbol</Text>
+                        <Text mb={1} fontSize="xs" color="text.muted">Symbol</Text>
                         <Menu.Root>
                             <Menu.Trigger asChild>
                                 <Button
                                     variant="outline"
                                     width="full"
                                     justifyContent="space-between"
-                                    bg="gray.700"
-                                    borderColor="gray.600"
-                                    color="white"
-                                    _hover={{ bg: "gray.600" }}
+                                    bg="glass.100"
+                                    borderColor="border.glass"
+                                    color="text.main"
+                                    _hover={{ bg: "glass.200", borderColor: "violet.500" }}
+                                    size="sm"
                                 >
                                     {symbol} <Box as="span">▼</Box>
                                 </Button>
                             </Menu.Trigger>
                             <Menu.Positioner>
-                                <Menu.Content bg="gray.700" borderColor="gray.600" minW="content" zIndex={1000}>
+                                <Menu.Content bg="bg.panel" borderColor="border.glass" minW="content" zIndex={1000} backdropFilter="blur(10px)">
                                     {["BTCUSD", "USDJPY", "EURUSD", "GBPUSD", "XAUUSD"].map((s) => (
                                         <Menu.Item
                                             key={s}
                                             value={s}
                                             onClick={() => setSymbol(s)}
-                                            bg="gray.700"
-                                            color="white"
-                                            _hover={{ bg: "gray.600" }}
+                                            bg="transparent"
+                                            color="text.main"
+                                            _hover={{ bg: "glass.200" }}
                                             cursor="pointer"
                                             p={2}
                                         >
@@ -73,25 +74,31 @@ export const OrderForm = () => {
                     </Box>
 
                     <Box>
-                        <Text mb={1}>Type</Text>
-                        <Flex gap={4}>
+                        <Text mb={1} fontSize="xs" color="text.muted">Type</Text>
+                        <Flex gap={2}>
                             <Button
                                 size="sm"
                                 flex={1}
-                                colorPalette={orderType === 'BUY' ? 'blue' : 'gray'}
+                                bg={orderType === 'BUY' ? 'blue.500' : 'transparent'}
+                                borderColor={orderType === 'BUY' ? 'blue.500' : 'border.glass'}
+                                color="white"
                                 variant={orderType === 'BUY' ? 'solid' : 'outline'}
                                 onClick={() => setOrderType('BUY')}
                                 type="button"
+                                _hover={{ bg: orderType === 'BUY' ? 'blue.600' : 'glass.200' }}
                             >
                                 Buy
                             </Button>
                             <Button
                                 size="sm"
                                 flex={1}
-                                colorPalette={orderType === 'SELL' ? 'red' : 'gray'}
+                                bg={orderType === 'SELL' ? 'red.500' : 'transparent'}
+                                borderColor={orderType === 'SELL' ? 'red.500' : 'border.glass'}
+                                color="white"
                                 variant={orderType === 'SELL' ? 'solid' : 'outline'}
                                 onClick={() => setOrderType('SELL')}
                                 type="button"
+                                _hover={{ bg: orderType === 'SELL' ? 'red.600' : 'glass.200' }}
                             >
                                 Sell
                             </Button>
@@ -99,19 +106,30 @@ export const OrderForm = () => {
                     </Box>
 
                     <Box>
-                        <Text mb={1}>Volume</Text>
+                        <Text mb={1} fontSize="xs" color="text.muted">Volume</Text>
                         <Input
                             type="number"
                             value={volume}
                             onChange={(e) => setVolume(e.target.value)}
                             min={0.01}
                             step={0.01}
-                            bg="gray.700"
-                            borderColor="gray.600"
+                            bg="glass.100"
+                            borderColor="border.glass"
+                            color="text.main"
+                            size="sm"
+                            _focus={{ borderColor: "violet.500", boxShadow: "0 0 0 1px #8a2be2" }}
                         />
                     </Box>
 
-                    <Button colorPalette={orderType === 'BUY' ? 'blue' : 'red'} loading={isLoading} type="submit" width="full">
+                    <Button
+                        bg={orderType === 'BUY' ? 'blue.500' : 'red.500'}
+                        color="white"
+                        loading={isLoading}
+                        type="submit"
+                        width="full"
+                        size="sm"
+                        _hover={{ opacity: 0.9, boxShadow: orderType === 'BUY' ? "0 0 10px blue" : "0 0 10px red" }}
+                    >
                         Place {orderType} Order
                     </Button>
                 </Stack>

@@ -53,41 +53,20 @@ from bot.backtester import run_backtest
 
 @app.post("/api/orders", response_model=OrderResponse)
 async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
-    # ... (existing order logic) ...
-    # Simulation logic
-    order_id = str(uuid.uuid4())
-    
-    # Determine mock price based on symbol
-    base_price = 150.00 if "JPY" in order.symbol else 1.0800
-    # Add some random variation
-    open_price = round(base_price + random.uniform(-0.05, 0.05), 3 if "JPY" in order.symbol else 5)
-    
-    # Initial spread cost (mock)
-    spread = 0.003 if "JPY" in order.symbol else 0.00003
-    current_price = open_price - spread if order.order_type == "BUY" else open_price + spread
-    
-    # Calculate initial profit (negative due to spread)
-    diff = (current_price - open_price) if order.order_type == "BUY" else (open_price - current_price)
-    profit = diff * order.volume * 100000
-    if "JPY" in order.symbol:
-        profit /= 100 # Adjust for JPY pairs (usually 100 units per pip, but simplified here)
-
-    new_position = Position(
+    # Call MT5 client to place order
+    result = mt5_client.place_order(
         symbol=order.symbol,
-        type=order.order_type,
-        volume=order.volume,
-        open_price=open_price,
-        current_price=round(current_price, 3 if "JPY" in order.symbol else 5),
-        profit=round(profit, 0)
+        order_type=order.order_type,
+        volume=order.volume
     )
     
-    db.add(new_position)
-    await db.commit()
+    if result["status"] == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
     
     return OrderResponse(
-        order_id=order_id,
+        order_id=str(result.get("order_id", "")),
         status="FILLED",
-        message=f"Order executed: {order.order_type} {order.symbol} @ {open_price}"
+        message=result["message"]
     )
 
 @app.post("/api/backtest", response_model=BacktestResponse)

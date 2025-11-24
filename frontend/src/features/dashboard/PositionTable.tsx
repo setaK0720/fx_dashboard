@@ -56,33 +56,33 @@ export const PositionTable = () => {
     };
 
     return (
-        <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700">
-            <Text fontSize="lg" fontWeight="bold" mb={4}>Open Positions</Text>
+        <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)">
+            <Text fontSize="md" fontWeight="bold" mb={2} color="text.main">Open Positions</Text>
             <Box overflowX="auto">
-                <Table.Root variant="outline" size="sm">
+                <Table.Root variant="line" size="sm">
                     <Table.Header>
-                        <Table.Row>
-                            <Table.ColumnHeader color="gray.400">Time</Table.ColumnHeader>
-                            <Table.ColumnHeader color="gray.400">Elapsed</Table.ColumnHeader>
-                            <Table.ColumnHeader color="gray.400">Symbol</Table.ColumnHeader>
-                            <Table.ColumnHeader color="gray.400">Type</Table.ColumnHeader>
-                            <Table.ColumnHeader color="gray.400" textAlign="right">Lot</Table.ColumnHeader>
-                            <Table.ColumnHeader color="gray.400" textAlign="right">Price</Table.ColumnHeader>
-                            <Table.ColumnHeader color="gray.400" textAlign="right">Profit</Table.ColumnHeader>
+                        <Table.Row borderBottomColor="border.glass">
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Time</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Elapsed</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Symbol</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" borderBottomColor="border.glass">Type</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Lot</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Price</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Profit</Table.ColumnHeader>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
                         {positions.map((pos) => (
-                            <Table.Row key={pos.id}>
-                                <Table.Cell>{formatTime(pos.time)}</Table.Cell>
-                                <Table.Cell>{formatElapsed(pos.time)}</Table.Cell>
-                                <Table.Cell fontWeight="bold">{pos.symbol}</Table.Cell>
-                                <Table.Cell>
-                                    <Badge colorPalette={pos.type === 'BUY' ? 'blue' : 'red'}>{pos.type}</Badge>
+                            <Table.Row key={pos.id} borderBottomColor="border.glass" _hover={{ bg: "glass.100" }}>
+                                <Table.Cell color="text.main" borderBottomColor="border.glass">{formatTime(pos.time)}</Table.Cell>
+                                <Table.Cell color="text.main" borderBottomColor="border.glass">{formatElapsed(pos.time)}</Table.Cell>
+                                <Table.Cell fontWeight="bold" color="text.main" borderBottomColor="border.glass">{pos.symbol}</Table.Cell>
+                                <Table.Cell borderBottomColor="border.glass">
+                                    <Badge colorPalette={pos.type === 'BUY' ? 'blue' : 'red'} variant="solid" size="sm">{pos.type}</Badge>
                                 </Table.Cell>
-                                <Table.Cell textAlign="right">{pos.volume}</Table.Cell>
-                                <Table.Cell textAlign="right">{pos.open_price}</Table.Cell>
-                                <Table.Cell textAlign="right" color={pos.profit >= 0 ? 'green.300' : 'red.300'}>
+                                <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.volume}</Table.Cell>
+                                <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.open_price}</Table.Cell>
+                                <Table.Cell textAlign="right" color={pos.profit >= 0 ? 'green.300' : 'red.300'} borderBottomColor="border.glass">
                                     {pos.profit}
                                 </Table.Cell>
                             </Table.Row>

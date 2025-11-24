@@ -16,15 +16,15 @@ interface ChartWidgetProps {
 
 export const ChartWidget = ({ symbol }: ChartWidgetProps) => {
     return (
-        <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700" height="400px" mb={6}>
-            <Text fontSize="lg" fontWeight="bold" mb={4}>{symbol} Chart</Text>
-            <ResponsiveContainer width="100%" height="100%">
+        <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" height="400px" backdropFilter="blur(10px)">
+            <Text fontSize="md" fontWeight="bold" mb={2} color="text.main">{symbol} Chart</Text>
+            <ResponsiveContainer width="100%" height="90%">
                 <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                    <XAxis dataKey="time" stroke="#888" />
-                    <YAxis domain={['auto', 'auto']} stroke="#888" />
-                    <Tooltip contentStyle={{ backgroundColor: '#333', border: 'none' }} />
-                    <Line type="monotone" dataKey="price" stroke="#8884d8" strokeWidth={2} dot={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(138, 43, 226, 0.1)" />
+                    <XAxis dataKey="time" stroke="#a0a0a0" fontSize={12} tickLine={false} />
+                    <YAxis domain={['auto', 'auto']} stroke="#a0a0a0" fontSize={12} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'rgba(20, 10, 30, 0.9)', borderColor: 'rgba(138, 43, 226, 0.3)', color: '#fff' }} />
+                    <Line type="monotone" dataKey="price" stroke="#00ffff" strokeWidth={2} dot={false} />
                 </LineChart>
             </ResponsiveContainer>
         </Box>

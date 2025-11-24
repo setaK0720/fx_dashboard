@@ -13,8 +13,8 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
     const data = prices[selectedSymbol];
 
     return (
-        <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700">
-            <Heading size="md" mb={4}>ライブレート {isConnected ? '(接続中)' : '(切断時)'}</Heading>
+        <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)">
+            <Heading size="sm" mb={2} color="text.main">ライブレート {isConnected ? '(接続中)' : '(切断時)'}</Heading>
 
             <Menu.Root>
                 <Menu.Trigger asChild>
@@ -22,24 +22,25 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
                         variant="outline"
                         width="200px"
                         justifyContent="space-between"
-                        bg="#2D3748"
-                        color="white"
-                        borderColor="#4A5568"
-                        _hover={{ bg: "#4A5568" }}
+                        bg="glass.100"
+                        color="text.main"
+                        borderColor="border.glass"
+                        _hover={{ bg: "glass.200", borderColor: "violet.500" }}
+                        size="sm"
                     >
                         {selectedSymbol} <Box as="span">▼</Box>
                     </Button>
                 </Menu.Trigger>
                 <Menu.Positioner>
-                    <Menu.Content bg="#2D3748" borderColor="#4A5568" minW="200px" zIndex={1000}>
+                    <Menu.Content bg="bg.panel" borderColor="border.glass" minW="200px" zIndex={1000} backdropFilter="blur(10px)">
                         {AVAILABLE_SYMBOLS.map(symbol => (
                             <Menu.Item
                                 key={symbol}
                                 value={symbol}
                                 onClick={() => onSymbolChange(symbol)}
-                                bg="#2D3748"
-                                color="white"
-                                _hover={{ bg: "#4A5568" }}
+                                bg="transparent"
+                                color="text.main"
+                                _hover={{ bg: "glass.200" }}
                                 cursor="pointer"
                                 p={2}
                             >
@@ -50,25 +51,25 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
                 </Menu.Positioner>
             </Menu.Root>
 
-            <Box p={3} bg="gray.700" borderRadius="md" mt={6}>
+            <Box p={2} bg="glass.100" borderRadius="md" mt={2} border="1px solid" borderColor="border.glass">
                 <Stat.Root>
-                    <Stat.Label fontSize="lg" fontWeight="bold">{selectedSymbol}</Stat.Label>
-                    <HStack justify="space-between" mt={2}>
+                    <Stat.Label fontSize="md" fontWeight="bold" color="text.main">{selectedSymbol}</Stat.Label>
+                    <HStack justify="space-between" mt={1}>
                         <Box>
-                            <Stat.Label fontSize="xs">Bid</Stat.Label>
-                            <Stat.ValueText fontSize="xl" color="red.300">
+                            <Stat.Label fontSize="xs" color="text.muted">Bid</Stat.Label>
+                            <Stat.ValueText fontSize="lg" color="red.300">
                                 {data?.bid?.toFixed(selectedSymbol.includes("JPY") ? 3 : 5) || '---'}
                             </Stat.ValueText>
                         </Box>
                         <Box>
-                            <Stat.Label fontSize="xs">Ask</Stat.Label>
-                            <Stat.ValueText fontSize="xl" color="blue.300">
+                            <Stat.Label fontSize="xs" color="text.muted">Ask</Stat.Label>
+                            <Stat.ValueText fontSize="lg" color="blue.300">
                                 {data?.ask?.toFixed(selectedSymbol.includes("JPY") ? 3 : 5) || '---'}
                             </Stat.ValueText>
                         </Box>
                     </HStack>
-                    <HStack justify="flex-end" mt={1}>
-                        <Stat.HelpText fontSize="sm">Spread: {data?.spread ?? '-'}</Stat.HelpText>
+                    <HStack justify="flex-end" mt={0}>
+                        <Stat.HelpText fontSize="xs" color="text.muted">Spread: {data?.spread ?? '-'}</Stat.HelpText>
                     </HStack>
                 </Stat.Root>
             </Box>
