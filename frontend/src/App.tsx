@@ -1,5 +1,4 @@
-import { ChakraProvider, SimpleGrid, Box } from '@chakra-ui/react'
-import { system } from './theme'
+import { ChakraProvider, defaultSystem, SimpleGrid, Box } from '@chakra-ui/react'
 import { DashboardLayout } from './components/Layout/DashboardLayout'
 import { RatePanel } from './features/dashboard/RatePanel'
 import { ChartWidget } from './features/dashboard/ChartWidget'
@@ -17,15 +16,15 @@ function App() {
   const [selectedSymbol, setSelectedSymbol] = useState('BTCUSD')
 
   return (
-    <ChakraProvider value={system}>
+    <ChakraProvider value={defaultSystem}>
       <DashboardLayout currentView={currentView} onNavigate={setCurrentView}>
         {currentView === 'dashboard' ? (
           <>
             <RatePanel selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />
-            <Box mb={0} p={2}>
+            <Box mb={6}>
               <AccountInfoWidget />
             </Box>
-            <SimpleGrid columns={{ base: 1, lg: 3 }} gap={2} mb={2} p={2}>
+            <SimpleGrid columns={{ base: 1, lg: 3 }} gap={6} mb={6}>
               <Box gridColumn={{ lg: "span 2" }}>
                 <ChartWidget symbol={selectedSymbol} />
               </Box>
@@ -33,12 +32,10 @@ function App() {
                 <OrderForm />
               </Box>
             </SimpleGrid>
-            <Box mb={2} p={2}>
+            <Box mb={6}>
               <BacktestPanel />
             </Box>
-            <Box p={2}>
-              <PositionTable />
-            </Box>
+            <PitionTable />
           </>
         ) : (
           <AccountPanel />

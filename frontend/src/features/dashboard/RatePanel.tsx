@@ -13,7 +13,7 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
     const data = prices[selectedSymbol];
 
     return (
-        <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)" position="relative" zIndex={10}>
+        <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)">
             <Heading size="sm" mb={2} color="text.main">ライブレート {isConnected ? '(接続中)' : '(切断時)'}</Heading>
 
             <Menu.Root>

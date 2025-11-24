@@ -1,6 +1,6 @@
-import { Box, Table, Text, Badge } from '@chakra-ui/react';
+import { Box, Table, Text, Badge, Button } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { fetchPositions } from '../../lib/api';
+import { fetchPositions, closePosition } from '../../lib/api';
 import type { Position } from '../../lib/api';
 
 export const PositionTable = () => {
@@ -33,6 +33,18 @@ export const PositionTable = () => {
             minute: '2-digit',
             second: '2-digit'
         });
+    };
+
+    const handleClose = async (ticket: number) => {
+        try {
+            await closePosition(ticket);
+            // Refresh positions after closing
+            const updatedPositions = await fetchPositions();
+            setPositions(updatedPositions);
+        } catch (error) {
+            console.error('Failed to close position:', error);
+            alert('Failed to close position');
+        }
     };
 
     const formatElapsed = (timestamp: number) => {
@@ -69,6 +81,7 @@ export const PositionTable = () => {
                             <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Lot</Table.ColumnHeader>
                             <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Price</Table.ColumnHeader>
                             <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="right" borderBottomColor="border.glass">Profit</Table.ColumnHeader>
+                            <Table.ColumnHeader color="text.muted" fontSize="xs" textAlign="center" borderBottomColor="border.glass">Action</Table.ColumnHeader>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
@@ -84,6 +97,17 @@ export const PositionTable = () => {
                                 <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.open_price}</Table.Cell>
                                 <Table.Cell textAlign="right" color={pos.profit >= 0 ? 'green.300' : 'red.300'} borderBottomColor="border.glass">
                                     {pos.profit}
+                                </Table.Cell>
+                                <Table.Cell textAlign="center" borderBottomColor="border.glass">
+                                    <Button
+                                        size="xs"
+                                        bg="red.600"
+                                        color="white"
+                                        _hover={{ bg: "red.700" }}
+                                        onClick={() => handleClose(pos.id)}
+                                    >
+                                        Close
+                                    </Button>
                                 </Table.Cell>
                             </Table.Row>
                         ))}

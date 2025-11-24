@@ -69,6 +69,16 @@ async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
         message=result["message"]
     )
 
+@app.delete("/api/positions/{ticket}")
+async def close_position(ticket: int):
+    """Close a position by ticket number"""
+    result = mt5_client.close_position(ticket)
+    
+    if result["status"] == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
+    
+    return {"message": result["message"], "ticket": ticket}
+
 @app.post("/api/backtest", response_model=BacktestResponse)
 async def run_backtest_endpoint(request: BacktestRequest):
     try:

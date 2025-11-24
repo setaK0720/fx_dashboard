@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
 
 export interface BotStatus {
     is_running: boolean;
@@ -86,6 +86,17 @@ export const runBacktest = async (request: BacktestRequest): Promise<BacktestRes
     });
     if (!response.ok) {
         throw new Error('Failed to run backtest');
+    }
+    return response.json();
+};
+
+export const closePosition = async (ticket: number): Promise<{ message: string; ticket: number }> => {
+    const response = await fetch(`${API_BASE_URL}/positions/${ticket}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to close position' }));
+        throw new Error(errorData.detail || 'Failed to close position');
     }
     return response.json();
 };
