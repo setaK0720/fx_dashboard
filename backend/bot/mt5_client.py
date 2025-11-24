@@ -243,6 +243,44 @@ class MT5Client:
             "ticket": ticket
         }
 
+    def close_all_positions(self, position_type=None):
+        """
+        Close all positions, optionally filtered by type.
+        position_type: 'BUY', 'SELL', or None (for all)
+        """
+        if not self.connected:
+            return {"status": "error", "message": "Not connected to MT5"}
+
+        positions = self.get_positions()
+        if not positions:
+            return {"status": "success", "message": "No positions to close", "closed_count": 0}
+
+        target_type = None
+        if position_type == "BUY":
+            target_type = "BUY"
+        elif position_type == "SELL":
+            target_type = "SELL"
+
+        closed_count = 0
+        errors = []
+
+        for pos in positions:
+            if target_type and pos["type"] != target_type:
+                continue
+            
+            result = self.close_position(pos["id"])
+            if result["status"] == "success":
+                closed_count += 1
+            else:
+                errors.append(f"Ticket {pos['id']}: {result['message']}")
+
+        return {
+            "status": "success" if not errors else "partial_success",
+            "message": f"Closed {closed_count} positions",
+            "closed_count": closed_count,
+            "errors": errors
+        }
+
     def get_historical_data(self, symbol, timeframe, num_candles=1000):
         if not self.connected:
             return None

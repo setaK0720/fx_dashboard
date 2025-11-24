@@ -41,3 +41,7 @@
 *   **モバイル対応**:
     *   モバイル表示時に左サイドバーを非表示にし、ヘッダーにハンバーガーメニューを追加。
     *   Chakra UIの `Drawer` コンポーネントを使用して、メニュー開閉機能を実装。
+*   **一括決済機能**:
+    *   `MT5Client` に `close_all_positions` メソッドを追加。
+    *   Backendに `DELETE /api/positions` エンドポイントを追加。
+    *   Frontendの `PositionTable` に「CLOSE BUY」「CLOSE SELL」「CLOSE ALL」ボタンを追加。
