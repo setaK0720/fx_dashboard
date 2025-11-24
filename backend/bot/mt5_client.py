@@ -137,6 +137,112 @@ class MT5Client:
             })
         return result
 
+    def place_order(self, symbol, order_type, volume, sl=None, tp=None):
+        if not self.connected:
+            return {"status": "error", "message": "Not connected to MT5"}
+
+        normalized_symbol = self.normalize_symbol(symbol)
+        
+        # Ensure symbol is selected
+        if not mt5.symbol_select(normalized_symbol, True):
+             return {"status": "error", "message": f"Failed to select symbol {normalized_symbol}"}
+
+        tick = mt5.symbol_info_tick(normalized_symbol)
+        if tick is None:
+            return {"status": "error", "message": f"Failed to get tick for {normalized_symbol}"}
+
+        action = mt5.TRADE_ACTION_DEAL
+        type_op = mt5.ORDER_TYPE_BUY if order_type == "BUY" else mt5.ORDER_TYPE_SELL
+        price = tick.ask if order_type == "BUY" else tick.bid
+        
+        request = {
+            "action": action,
+            "symbol": normalized_symbol,
+            "volume": volume,
+            "type": type_op,
+            "price": price,
+            "deviation": 20,
+            "magic": 234000,
+            "comment": "python script open",
+            "type_time": mt5.ORDER_TIME_GTC,
+            "type_filling": mt5.ORDER_FILLING_IOC,
+        }
+        
+        if sl:
+            request["sl"] = sl
+        if tp:
+            request["tp"] = tp
+
+        result = mt5.order_send(request)
+        
+        if result is None:
+             return {"status": "error", "message": "Order send failed (unknown error)"}
+        
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            logger.error(f"Order failed: {result.comment} ({result.retcode})")
+            return {"status": "error", "message": f"Order failed: {result.comment}"}
+        
+        logger.info(f"Order placed: {result.order}")
+        return {
+            "status": "success", 
+            "message": "Order placed successfully", 
+            "order_id": result.order,
+            "price": result.price
+        }
+
+    def close_position(self, ticket: int):
+        """Close a position by ticket number"""
+        if not self.connected:
+            return {"status": "error", "message": "Not connected to MT5"}
+        
+        # Get position info
+        position = mt5.positions_get(ticket=ticket)
+        if position is None or len(position) == 0:
+            return {"status": "error", "message": f"Position {ticket} not found"}
+        
+        position = position[0]
+        
+        # Determine opposite order type
+        order_type = mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY
+        
+        # Get current price
+        tick = mt5.symbol_info_tick(position.symbol)
+        if tick is None:
+            return {"status": "error", "message": f"Failed to get tick for {position.symbol}"}
+        
+        price = tick.bid if position.type == mt5.ORDER_TYPE_BUY else tick.ask
+        
+        # Create close request
+        request = {
+            "action": mt5.TRADE_ACTION_DEAL,
+            "symbol": position.symbol,
+            "volume": position.volume,
+            "type": order_type,
+            "position": ticket,
+            "price": price,
+            "deviation": 20,
+            "magic": 234000,
+            "comment": "python close position",
+            "type_time": mt5.ORDER_TIME_GTC,
+            "type_filling": mt5.ORDER_FILLING_IOC,
+        }
+        
+        result = mt5.order_send(request)
+        
+        if result is None:
+            return {"status": "error", "message": "Close order failed (unknown error)"}
+        
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            logger.error(f"Close failed: {result.comment} ({result.retcode})")
+            return {"status": "error", "message": f"Close failed: {result.comment}"}
+        
+        logger.info(f"Position {ticket} closed successfully")
+        return {
+            "status": "success",
+            "message": "Position closed successfully",
+            "ticket": ticket
+        }
+
     def get_historical_data(self, symbol, timeframe, num_candles=1000):
         if not self.connected:
             return None

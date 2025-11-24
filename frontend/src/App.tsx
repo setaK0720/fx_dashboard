@@ -35,7 +35,7 @@ function App() {
             <Box mb={6}>
               <BacktestPanel />
             </Box>
-            <PositionTable />
+            <PitionTable />
           </>
         ) : (
           <AccountPanel />
