@@ -31,4 +31,10 @@
 *   レスポンシブ対応を確認。
 
 ### 次のステップ
-*   ユーザーからのフィードバック待ち。
+### 2025-11-24 (追記)
+*   **外部アクセス対応**:
+    *   Backend: `uvicorn` のホストを `0.0.0.0` に変更し、CORS設定で全オリジン (`*`) を許可。
+    *   Frontend: `vite` のホスト設定を追加し、API接続先を `window.location.hostname` を使用して動的に解決するように変更。
+*   **バグ修正**:
+    *   `App.tsx` のタイプミス (`PitionTable` -> `PositionTable`) を修正。
+    *   `theme.ts` が欠落していた問題を修正し、Semantic Tokensを使用して再定義。
