@@ -19,3 +19,9 @@
 ## 検証結果
 - [x] 全体的な見た目: 意図した「シックで未来的」なデザインになっていることを確認。
 - [x] レスポンシブ: モバイル表示でも崩れないことを確認（コードベース）。
+- [x] 注文機能: XM_DEMO口座での成行注文（Buy/Sell）が正常に機能することを確認。
+    - Debug Script: Success
+    - UI Test: Success
+    - ポジション一覧への反映を確認。
+
+![Order Verification Result](C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/order_verification_result_1763945334917.png)
