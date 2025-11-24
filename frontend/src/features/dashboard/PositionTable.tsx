@@ -73,7 +73,7 @@ export const PositionTable = () => {
                     </Table.Header>
                     <Table.Body>
                         {positions.map((pos) => (
-                            <Table.Row key={pos.id} borderBottomColor="border.glass" _hover={{ bg: "glass.100" }}>
+                            <Table.Row key={pos.id} bg="transparent" borderBottomColor="border.glass" _hover={{ bg: "glass.100" }}>
                                 <Table.Cell color="text.main" borderBottomColor="border.glass">{formatTime(pos.time)}</Table.Cell>
                                 <Table.Cell color="text.main" borderBottomColor="border.glass">{formatElapsed(pos.time)}</Table.Cell>
                                 <Table.Cell fontWeight="bold" color="text.main" borderBottomColor="border.glass">{pos.symbol}</Table.Cell>
