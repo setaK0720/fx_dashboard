@@ -121,68 +121,32 @@ export const PositionTable = () => {
                         size="sm"
                         bg="red.700"
                         color="white"
-                        _hover={{ bg: "red.800" }}
-                        onClick={() => handleBulkClose('SELL')}
-                        disabled={loading || !positions.some(p => p.type === 'SELL')}
-                    >
-                        CLOSE SELL
-                    </Button>
-                    <Button
-                        size="sm"
-                        bg="gray.800"
-                        color="white"
-                        _hover={{ bg: "gray.900" }}
-                        onClick={() => handleBulkClose('ALL')}
-                        disabled={loading || positions.length === 0}
-                    >
-                        CLOSE ALL
-                    </Button>
-                </HStack>
-            </Flex>
-            <Box overflowX="auto">
-                <Table.Root variant="line" size="sm">
-                    <Table.Header bg="gray.800">
-                        <Table.Row>
-                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Time</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Elapsed</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Symbol</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" bg="transparent">Type</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="right" bg="transparent">Lot</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="right" bg="transparent">Price</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="right" bg="transparent">Profit</Table.ColumnHeader>
-                            <Table.ColumnHeader color="white" fontSize="xs" textAlign="center" bg="transparent">Action</Table.ColumnHeader>
-                        </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                        {positions.map((pos) => (
-                            <Table.Row key={pos.id} bg="transparent" borderBottomColor="border.glass" _hover={{ bg: "glass.100" }}>
-                                <Table.Cell color="text.main" borderBottomColor="border.glass">{formatTime(pos.time)}</Table.Cell>
                                 <Table.Cell color="text.main" borderBottomColor="border.glass">{formatElapsed(pos.time)}</Table.Cell>
-                                <Table.Cell fontWeight="bold" color="text.main" borderBottomColor="border.glass">{pos.symbol}</Table.Cell>
-                                <Table.Cell borderBottomColor="border.glass">
-                                    <Badge colorPalette={pos.type === 'BUY' ? 'blue' : 'red'} variant="solid" size="sm">{pos.type}</Badge>
-                                </Table.Cell>
-                                <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.volume}</Table.Cell>
-                                <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.open_price}</Table.Cell>
-                                <Table.Cell textAlign="right" color={pos.profit >= 0 ? 'green.300' : 'red.300'} borderBottomColor="border.glass">
-                                    {pos.profit}
-                                </Table.Cell>
-                                <Table.Cell textAlign="center" borderBottomColor="border.glass">
-                                    <Button
-                                        size="xs"
-                                        bg="red.600"
-                                        color="white"
-                                        _hover={{ bg: "red.700" }}
-                                        onClick={() => handleClose(pos.id)}
-                                    >
-                                        Close
-                                    </Button>
-                                </Table.Cell>
-                            </Table.Row>
+                    <Table.Cell fontWeight="bold" color="text.main" borderBottomColor="border.glass">{pos.symbol}</Table.Cell>
+                    <Table.Cell borderBottomColor="border.glass">
+                        <Badge colorPalette={pos.type === 'BUY' ? 'blue' : 'red'} variant="solid" size="sm">{pos.type}</Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.volume}</Table.Cell>
+                    <Table.Cell textAlign="right" color="text.main" borderBottomColor="border.glass">{pos.open_price}</Table.Cell>
+                    <Table.Cell textAlign="right" color={pos.profit >= 0 ? 'green.300' : 'red.300'} borderBottomColor="border.glass">
+                        {pos.profit}
+                    </Table.Cell>
+                    <Table.Cell textAlign="center" borderBottomColor="border.glass">
+                        <Button
+                            size="xs"
+                            bg="red.600"
+                            color="white"
+                            _hover={{ bg: "red.700" }}
+                            onClick={() => handleClose(pos.id)}
+                        >
+                            Close
+                        </Button>
+                    </Table.Cell>
+                </Table.Row>
                         ))}
-                    </Table.Body>
-                </Table.Root>
-            </Box>
-        </Box>
+            </Table.Body>
+        </Table.Root>
+            </Box >
+        </Box >
     );
 };
