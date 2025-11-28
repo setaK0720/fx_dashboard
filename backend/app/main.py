@@ -14,8 +14,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -50,6 +50,9 @@ import random
 import uuid
 from app.schemas import OrderCreate, OrderResponse, BacktestRequest, BacktestResponse
 from bot.backtester import run_backtest
+from bot.auto_close import AutoCloseManager, AutoCloseSettings
+
+# ... (existing code) ...
 
 @app.post("/api/orders", response_model=OrderResponse)
 async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
@@ -71,13 +74,27 @@ async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
 
 @app.delete("/api/positions/{ticket}")
 async def close_position(ticket: int):
-    """Close a position by ticket number"""
     result = mt5_client.close_position(ticket)
-    
     if result["status"] == "error":
         raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+@app.delete("/api/positions")
+async def close_all_positions(type: str = "ALL"):
+    """
+    Close all positions.
+    type: 'ALL', 'BUY', or 'SELL'
+    """
+    position_type = None
+    if type == "BUY":
+        position_type = "BUY"
+    elif type == "SELL":
+        position_type = "SELL"
     
-    return {"message": result["message"], "ticket": ticket}
+    result = mt5_client.close_all_positions(position_type)
+    if result["status"] == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
 
 @app.post("/api/backtest", response_model=BacktestResponse)
 async def run_backtest_endpoint(request: BacktestRequest):
@@ -98,7 +115,10 @@ async def run_backtest_endpoint(request: BacktestRequest):
 
 from bot.mt5_client import MT5Client
 
+from bot.mt5_client import MT5Client
+
 mt5_client = MT5Client()
+auto_close_manager = AutoCloseManager(mt5_client)
 
 @app.on_event("startup")
 async def on_startup():
@@ -109,6 +129,7 @@ async def on_startup():
         print("Failed to connect to MT5")
     asyncio.create_task(broadcast_prices())
     asyncio.create_task(broadcast_account_info())
+    asyncio.create_task(run_auto_close_loop())
 
 @app.on_event("shutdown")
 async def on_shutdown():
@@ -223,6 +244,23 @@ async def broadcast_account_info():
                 await account_manager.broadcast(json.dumps(info))
         
         await asyncio.sleep(1)
+
+async def run_auto_close_loop():
+    while True:
+        try:
+            await auto_close_manager.check_and_close()
+        except Exception as e:
+            print(f"Error in auto close loop: {e}")
+        await asyncio.sleep(1)  # 1秒ごとにチェック
+
+@app.get("/api/autoclose/settings", response_model=AutoCloseSettings)
+async def get_auto_close_settings():
+    return auto_close_manager.get_settings()
+
+@app.post("/api/autoclose/settings", response_model=AutoCloseSettings)
+async def update_auto_close_settings(settings: AutoCloseSettings):
+    auto_close_manager.update_settings(settings)
+    return settings
 
 
 

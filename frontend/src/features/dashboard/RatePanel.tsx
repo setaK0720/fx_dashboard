@@ -1,7 +1,7 @@
-import { Box, Heading, Stat, HStack, Menu, Button } from '@chakra-ui/react';
+import { Box, Heading, Stat, HStack, Menu, Button, Portal } from '@chakra-ui/react';
 import { usePrices } from '../../hooks/usePrices';
 
-const AVAILABLE_SYMBOLS = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD"];
+const AVAILABLE_SYMBOLS = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD", "GBPUSD", "AUDUSD"];
 
 interface RatePanelProps {
     selectedSymbol: string;
@@ -31,24 +31,26 @@ export const RatePanel = ({ selectedSymbol, onSymbolChange }: RatePanelProps) =>
                         {selectedSymbol} <Box as="span">▼</Box>
                     </Button>
                 </Menu.Trigger>
-                <Menu.Positioner>
-                    <Menu.Content bg="bg.panel" borderColor="border.glass" minW="200px" zIndex={1000} backdropFilter="blur(10px)">
-                        {AVAILABLE_SYMBOLS.map(symbol => (
-                            <Menu.Item
-                                key={symbol}
-                                value={symbol}
-                                onClick={() => onSymbolChange(symbol)}
-                                bg="transparent"
-                                color="text.main"
-                                _hover={{ bg: "glass.200" }}
-                                cursor="pointer"
-                                p={2}
-                            >
-                                {symbol}
-                            </Menu.Item>
-                        ))}
-                    </Menu.Content>
-                </Menu.Positioner>
+                <Portal>
+                    <Menu.Positioner>
+                        <Menu.Content bg="bg.panel" borderColor="border.glass" minW="200px" zIndex={1000} backdropFilter="blur(10px)">
+                            {AVAILABLE_SYMBOLS.map(symbol => (
+                                <Menu.Item
+                                    key={symbol}
+                                    value={symbol}
+                                    onClick={() => onSymbolChange(symbol)}
+                                    bg="transparent"
+                                    color="text.main"
+                                    _hover={{ bg: "glass.200" }}
+                                    cursor="pointer"
+                                    p={2}
+                                >
+                                    {symbol}
+                                </Menu.Item>
+                            ))}
+                        </Menu.Content>
+                    </Menu.Positioner>
+                </Portal>
             </Menu.Root>
 
             <Box p={2} bg="glass.100" borderRadius="md" mt={2} border="1px solid" borderColor="border.glass">

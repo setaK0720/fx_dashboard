@@ -31,4 +31,17 @@
 *   レスポンシブ対応を確認。
 
 ### 次のステップ
-*   ユーザーからのフィードバック待ち。
+### 2025-11-24 (追記)
+*   **外部アクセス対応**:
+    *   Backend: `uvicorn` のホストを `0.0.0.0` に変更し、CORS設定で全オリジン (`*`) を許可。
+    *   Frontend: `vite` のホスト設定を追加し、API接続先を `window.location.hostname` を使用して動的に解決するように変更。
+*   **バグ修正**:
+    *   `App.tsx` のタイプミス (`PitionTable` -> `PositionTable`) を修正。
+    *   `theme.ts` が欠落していた問題を修正し、Semantic Tokensを使用して再定義。
+*   **モバイル対応**:
+    *   モバイル表示時に左サイドバーを非表示にし、ヘッダーにハンバーガーメニューを追加。
+    *   Chakra UIの `Drawer` コンポーネントを使用して、メニュー開閉機能を実装。
+*   **一括決済機能**:
+    *   `MT5Client` に `close_all_positions` メソッドを追加。
+    *   Backendに `DELETE /api/positions` エンドポイントを追加。
+    *   Frontendの `PositionTable` に「CLOSE BUY」「CLOSE SELL」「CLOSE ALL」ボタンを追加。

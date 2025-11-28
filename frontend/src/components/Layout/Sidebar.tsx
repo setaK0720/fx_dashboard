@@ -5,7 +5,7 @@ interface SidebarProps {
     onNavigate: (view: string) => void;
 }
 
-export const Sidebar = ({ currentView, onNavigate }: SidebarProps) => {
+export const SidebarContent = ({ currentView, onNavigate }: SidebarProps) => {
     const linkStyle = (view: string) => ({
         textDecoration: 'none',
         color: currentView === view ? 'teal.300' : 'white',
@@ -13,6 +13,22 @@ export const Sidebar = ({ currentView, onNavigate }: SidebarProps) => {
         cursor: 'pointer'
     });
 
+    return (
+        <VStack align="stretch" gap={4}>
+            <Link onClick={() => onNavigate('dashboard')} {...linkStyle('dashboard')}>
+                <Text fontWeight="bold">Dashboard</Text>
+            </Link>
+            <Link onClick={() => onNavigate('account')} {...linkStyle('account')}>
+                <Text fontWeight="bold">Account</Text>
+            </Link>
+            <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
+                <Text>Settings</Text>
+            </Link>
+        </VStack>
+    );
+};
+
+export const Sidebar = ({ currentView, onNavigate }: SidebarProps) => {
     return (
         <Box
             w="250px"
@@ -24,17 +40,7 @@ export const Sidebar = ({ currentView, onNavigate }: SidebarProps) => {
             p={4}
             display={{ base: 'none', md: 'block' }}
         >
-            <VStack align="stretch" gap={4}>
-                <Link onClick={() => onNavigate('dashboard')} {...linkStyle('dashboard')}>
-                    <Text fontWeight="bold">Dashboard</Text>
-                </Link>
-                <Link onClick={() => onNavigate('account')} {...linkStyle('account')}>
-                    <Text fontWeight="bold">Account</Text>
-                </Link>
-                <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
-                    <Text>Settings</Text>
-                </Link>
-            </VStack>
+            <SidebarContent currentView={currentView} onNavigate={onNavigate} />
         </Box>
     );
 };

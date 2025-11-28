@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
-const WS_URL = 'ws://localhost:8000/ws/account';
+const WS_URL = `ws://${window.location.hostname}:8000/ws/account`;
 
 export interface AccountInfo {
     balance: number;

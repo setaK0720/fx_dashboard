@@ -90,13 +90,24 @@ export const runBacktest = async (request: BacktestRequest): Promise<BacktestRes
     return response.json();
 };
 
-export const closePosition = async (ticket: number): Promise<{ message: string; ticket: number }> => {
+export const closePosition = async (ticket: number): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/positions/${ticket}`, {
         method: 'DELETE',
     });
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Failed to close position' }));
         throw new Error(errorData.detail || 'Failed to close position');
+    }
+    return response.json();
+};
+
+export const closeAllPositions = async (type: 'BUY' | 'SELL' | 'ALL' = 'ALL'): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/positions?type=${type}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to close all positions' }));
+        throw new Error(errorData.detail || 'Failed to close all positions');
     }
     return response.json();
 };

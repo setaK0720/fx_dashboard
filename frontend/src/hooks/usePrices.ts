@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
-const WS_URL = 'ws://localhost:8000/ws/prices';
+const WS_URL = `ws://${window.location.hostname}:8000/ws/prices`;
 
 export interface PriceData {
     symbol: string;

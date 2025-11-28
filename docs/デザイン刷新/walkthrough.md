@@ -28,3 +28,8 @@
 
 - [x] 外部アクセス: ローカルIP (`http://192.168.1.104:5173`) でのアクセスを確認。
 ![External Access Check](C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/external_access_check_1763980037366.png)
+
+- [x] モバイルメニュー: ハンバーガーメニューとDrawerの動作を確認。
+![Mobile Menu Open](C:/Users/ryhor/.gemini/antigravity/brain/2ca696e3-aed6-49f3-a72b-9f44129d74cb/mobile_menu_open_1763982823270.png)
+
+- [x] 一括決済: APIエンドポイント (`DELETE /api/positions`) の動作を確認。
