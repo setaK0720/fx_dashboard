@@ -14,6 +14,7 @@ class MT5Client:
         self.path = self.config["MT5Path"]
         self.current_account_name = TARGET_ACCOUNT
         self.connected = False
+        self.symbol_map = {}  # シンボルマッピングキャッシュ
 
     def connect(self):
         if not mt5.initialize(path=self.path):
@@ -24,6 +25,7 @@ class MT5Client:
         if authorized:
             logger.info(f"Connected to {self.account} on {self.server}")
             self.connected = True
+            self.symbol_map = {}  # 接続時にキャッシュをクリア
         else:
             logger.error(f"failed to connect at account #{self.account}, error code: {mt5.last_error()}")
             self.connected = False
@@ -52,12 +54,53 @@ class MT5Client:
             logger.error(f"Failed to switch account: {e}")
             return False
     
+    def check_symbol_exists(self, symbol):
+        """MT5でシンボルが利用可能かチェック"""
+        if not self.connected:
+            return False
+        
+        symbol_info = mt5.symbol_info(symbol)
+        return symbol_info is not None
+    
     def normalize_symbol(self, symbol):
-        """Normalize symbol name for XM broker (e.g., XAUUSD -> GOLD)"""
-        # XM uses "GOLD" instead of "XAUUSD"
+        """Normalize symbol name for broker (e.g., XAUUSD -> GOLD or GOLDmicro)"""
+        # キャッシュをチェック
+        if symbol in self.symbol_map:
+            return self.symbol_map[symbol]
+        
+        # XM broker用の変換
         if self.server and "XMTrading" in self.server:
+            # XAUUSDの変換
             if symbol == "XAUUSD":
-                return "GOLD"
+                # micro版が存在するかチェック
+                if self.check_symbol_exists("GOLDmicro"):
+                    logger.info(f"Using GOLDmicro for {symbol}")
+                    self.symbol_map[symbol] = "GOLDmicro"
+                    return "GOLDmicro"
+                # 通常版をチェック
+                elif self.check_symbol_exists("GOLD"):
+                    logger.info(f"Using GOLD for {symbol}")
+                    self.symbol_map[symbol] = "GOLD"
+                    return "GOLD"
+            
+            # USDJPYの変換（microバージョンをチェック）
+            elif symbol == "USDJPY":
+                if self.check_symbol_exists("USDJPYmicro"):
+                    logger.info(f"Using USDJPYmicro for {symbol}")
+                    self.symbol_map[symbol] = "USDJPYmicro"
+                    return "USDJPYmicro"
+            
+            # EURUSDの変換（microバージョンをチェック）
+            elif symbol == "EURUSD":
+                if self.check_symbol_exists("EURUSDmicro"):
+                    logger.info(f"Using EURUSDmicro for {symbol}")
+                    self.symbol_map[symbol] = "EURUSDmicro"
+                    return "EURUSDmicro"
+            
+            # BTCUSDはmicroバージョンなし、そのまま使用
+        
+        # デフォルトは元のシンボル
+        self.symbol_map[symbol] = symbol
         return symbol
 
     def get_rates(self, symbol):
