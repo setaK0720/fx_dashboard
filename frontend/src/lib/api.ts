@@ -71,22 +71,8 @@ export const placeOrder = async (order: OrderCreate): Promise<OrderResponse> => 
         body: JSON.stringify(order),
     });
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Failed to place order' }));
-        throw new Error(errorData.detail || 'Failed to place order');
-    }
-    return response.json();
-};
-
-export const runBacktest = async (request: BacktestRequest): Promise<BacktestResponse> => {
-    const response = await fetch(`${API_BASE_URL}/backtest`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-    });
-    if (!response.ok) {
-        throw new Error('Failed to run backtest');
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to close position' }));
+        throw new Error(errorData.detail || 'Failed to close position');
     }
     return response.json();
 };
@@ -113,26 +99,151 @@ export const closeAllPositions = async (type: 'BUY' | 'SELL' | 'ALL' = 'ALL'): P
     return response.json();
 };
 
-export interface HistoryDeal {
-    ticket: number;
-    order: number;
-    time: number;
-    time_msc: number;
-    type: string;
-    entry: string;
+export interface HistoryPosition {
+    position_id: number;
     symbol: string;
+    type: string;
     volume: number;
-    price: number;
-    commission: number;
-    swap: number;
+    open_price: number;
+    open_time: number;
+    close_price: number;
+    close_time: number | null;
     profit: number;
-    comment: string;
+    swap: number;
+    commission: number;
+    status: string;
 }
 
-export const fetchHistory = async (days: number = 30): Promise<HistoryDeal[]> => {
-    const response = await fetch(`${API_BASE_URL}/history?days=${days}`);
+export interface HistoryParams {
+    days?: number;
+    startDate?: string;
+    endDate?: string;
+}
+
+export const fetchHistory = async (params: HistoryParams = { days: 30 }): Promise<HistoryPosition[]> => {
+    const queryParams = new URLSearchParams();
+    if (params.startDate && params.endDate) {
+        queryParams.append('start_date', params.startDate);
+        queryParams.append('end_date', params.endDate);
+    } else {
+        queryParams.append('days', (params.days || 30).toString());
+    }
+
+    const response = await fetch(`${API_BASE_URL}/history?${queryParams.toString()}`);
     if (!response.ok) {
         throw new Error('Failed to fetch history');
     }
     return response.json();
 };
+
+
+export interface DataDownloadRequest {
+    symbol: string;
+    timeframe: string;
+    start_date: string;
+    end_date: string;
+}
+
+export interface DataFile {
+    symbol: string;
+    timeframe: string;
+    start: string;
+    end: string;
+    count: number;
+    filename: string;
+}
+
+export const downloadData = async (request: DataDownloadRequest): Promise<{ status: string; message: string }> => {
+    const response = await fetch(`${API_BASE_URL}/data/download`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to download data' }));
+        throw new Error(errorData.detail || 'Failed to download data');
+    }
+    return response.json();
+};
+
+export const listData = async (): Promise<DataFile[]> => {
+    const response = await fetch(`${API_BASE_URL}/data/list`);
+    if (!response.ok) {
+        throw new Error('Failed to list data');
+    }
+    return response.json();
+};
+
+export const loadData = async (symbol: string, timeframe: string, startDate?: string, endDate?: string): Promise<any[]> => {
+    const queryParams = new URLSearchParams({ symbol, timeframe });
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+
+    const response = await fetch(`${API_BASE_URL}/data/load?${queryParams.toString()}`);
+    if (!response.ok) {
+        throw new Error('Failed to load data');
+    }
+    return response.json();
+};
+
+export interface SandboxCondition {
+    indicator: string;
+    operator: string;
+    value: number;
+    action: string;
+}
+
+export interface SandboxRequest {
+    symbol: string;
+    timeframe: string;
+    start_date?: string;
+    end_date?: string;
+    conditions: SandboxCondition[];
+    tp: number;
+    sl: number;
+}
+
+export const runSandbox = async (request: SandboxRequest): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/sandbox/run`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to run simulation' }));
+        throw new Error(errorData.detail || 'Failed to run simulation');
+    }
+    return response.json();
+};
+
+export const fetchAccountAnalysis = async (days: number = 30, startDate?: string, endDate?: string): Promise<any> => {
+    const queryParams = new URLSearchParams({ days: days.toString() });
+    if (startDate) queryParams.append('start_date', startDate);
+    if (endDate) queryParams.append('end_date', endDate);
+
+    const response = await fetch(`${API_BASE_URL}/analysis/account?${queryParams.toString()}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch account analysis');
+    }
+    return response.json();
+};
+
+export const runBacktest = async (params: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/backtest/run`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to run backtest' }));
+        throw new Error(errorData.detail || 'Failed to run backtest');
+    }
+    return response.json();
+};
+export const fetchAvailableData = listData;

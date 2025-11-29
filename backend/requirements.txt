@@ -5,3 +5,5 @@ aiosqlite
 pydantic
 python-multipart
 websockets
+pandas
+MetaTrader5

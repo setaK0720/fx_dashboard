@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import init_db, get_db
 from app.models.base import BotStatus, Position
 from sqlalchemy import select
-from typing import List
+from typing import List, Optional
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
@@ -48,8 +48,7 @@ import json
 import random
 
 import uuid
-from app.schemas import OrderCreate, OrderResponse, BacktestRequest, BacktestResponse
-from bot.backtester import run_backtest
+from app.schemas import OrderCreate, OrderResponse
 from bot.auto_close import AutoCloseManager, AutoCloseSettings
 
 # ... (existing code) ...
@@ -96,21 +95,43 @@ async def close_all_positions(type: str = "ALL"):
         raise HTTPException(status_code=400, detail=result["message"])
     return result
 
-@app.post("/api/backtest", response_model=BacktestResponse)
-async def run_backtest_endpoint(request: BacktestRequest):
+from app.backtest.engine import BacktestEngine
+from app.backtest.strategies.sma_cross import SmaCrossStrategy
+
+class BacktestRunRequest(BaseModel):
+    symbol: str
+    timeframe: str
+    strategy: str
+    params: dict = {}
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    initial_cash: float = 10000.0
+
+@app.post("/api/backtest/run")
+def run_backtest_api(request: BacktestRunRequest):
+    # Load data
+    data = data_manager.load_data(request.symbol, request.timeframe, request.start_date, request.end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Data not found for backtest")
+        
+    # Select strategy
+    strategy_class = None
+    if request.strategy == "SmaCross":
+        strategy_class = SmaCrossStrategy
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown strategy: {request.strategy}")
+        
+    # Run backtest
     try:
-        result = run_backtest(
-            request.symbol,
-            request.timeframe,
-            request.period_days,
-            request.initial_cash,
-            request.short_window,
-            request.long_window
-        )
-        return BacktestResponse(**result)
+        # Convert list of dicts (from load_data) to DataFrame
+        import pandas as pd
+        df = pd.DataFrame(data)
+        
+        engine = BacktestEngine(df, strategy_class, initial_cash=request.initial_cash, params=request.params)
+        results = engine.run()
+        return results
     except Exception as e:
-        # In a real app, handle specific errors
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
 
 from bot.mt5_client import MT5Client
@@ -217,16 +238,28 @@ async def switch_account(request: AccountSwitchRequest):
 from datetime import datetime, timedelta
 
 @app.get("/api/history")
-def get_history(days: int = 30):
+def get_history(days: int = 30, start_date: Optional[str] = None, end_date: Optional[str] = None):
     """
-    Get trading history for the last N days.
+    Get trading history for the last N days or specific date range.
     """
-    # Set to_date to tomorrow to ensure we cover all trades even with timezone differences
-    to_date = datetime.now() + timedelta(days=1)
-    from_date = to_date - timedelta(days=days + 1) # Adjust from_date accordingly
+    if start_date and end_date:
+        try:
+            from_date = datetime.strptime(start_date, "%Y-%m-%d")
+            # Set to_date to the end of the specified end_date (23:59:59) essentially next day 00:00:00 minus epsilon, 
+            # but for MT5 history_deals_get(from, to), 'to' is exclusive usually? 
+            # Actually MT5 python API: from, to. 
+            # If we want to include the end_date fully, we should set to_date to end_date + 1 day.
+            to_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+            to_date = to_date_obj + timedelta(days=1)
+        except ValueError:
+             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    else:
+        # Set to_date to tomorrow to ensure we cover all trades even with timezone differences
+        to_date = datetime.now() + timedelta(days=1)
+        from_date = to_date - timedelta(days=days + 1) # Adjust from_date accordingly
     
-    deals = mt5_client.get_history_deals(from_date, to_date)
-    return deals
+    positions = mt5_client.get_history_positions(from_date, to_date)
+    return positions
 
 @app.websocket("/ws/prices")
 async def websocket_endpoint(websocket: WebSocket):
@@ -275,6 +308,137 @@ async def get_auto_close_settings():
 async def update_auto_close_settings(settings: AutoCloseSettings):
     auto_close_manager.update_settings(settings)
     return settings
+
+
+# Data Manager API
+from app.data_manager import DataManager
+
+data_manager = DataManager(mt5_client)
+
+class DataDownloadRequest(BaseModel):
+    symbol: str
+    timeframe: str
+    start_date: str
+    end_date: str
+
+@app.post("/api/data/download")
+def download_data(request: DataDownloadRequest):
+    try:
+        start = datetime.strptime(request.start_date, "%Y-%m-%d")
+        end = datetime.strptime(request.end_date, "%Y-%m-%d")
+        # Include the end date fully
+        end = end + timedelta(days=1)
+        
+        success = data_manager.download_data(request.symbol, request.timeframe, start, end)
+        if not success:
+             raise HTTPException(status_code=400, detail="Failed to download data")
+        return {"status": "success", "message": f"Downloaded {request.symbol} {request.timeframe}"}
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+@app.get("/api/data/list")
+def list_data():
+    return data_manager.get_available_data()
+
+@app.get("/api/data/load")
+def load_data(symbol: str, timeframe: str, start_date: Optional[str] = None, end_date: Optional[str] = None):
+    data = data_manager.load_data(symbol, timeframe, start_date, end_date)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Data not found")
+    return data
+
+
+# Analysis API
+from app.analysis import calculate_indicators
+
+class IndicatorParam(BaseModel):
+    name: str
+    params: dict = {}
+
+class AnalysisRequest(BaseModel):
+    symbol: str
+    timeframe: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    indicators: List[IndicatorParam]
+
+@app.post("/api/analysis/indicators")
+def get_indicators(request: AnalysisRequest):
+    # Load data
+    data = data_manager.load_data(request.symbol, request.timeframe, request.start_date, request.end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Data not found for analysis")
+        
+    # Calculate indicators
+    try:
+        results = calculate_indicators(data, [ind.dict() for ind in request.indicators])
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+
+from app.analysis import calculate_account_stats
+
+@app.get("/api/analysis/account")
+def get_account_analysis(days: int = 30, start_date: Optional[str] = None, end_date: Optional[str] = None):
+    """
+    Get account analysis statistics.
+    """
+    if start_date and end_date:
+        try:
+            from_date = datetime.strptime(start_date, "%Y-%m-%d")
+            to_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+            to_date = to_date_obj + timedelta(days=1)
+        except ValueError:
+             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    else:
+        to_date = datetime.now() + timedelta(days=1)
+        from_date = to_date - timedelta(days=days + 1)
+    
+    # Get positions
+    positions = mt5_client.get_history_positions(from_date, to_date)
+    
+    # Calculate stats
+    stats = calculate_account_stats(positions)
+    return stats
+
+
+# Sandbox API
+from app.sandbox import run_sandbox_backtest
+
+class SandboxCondition(BaseModel):
+    indicator: str
+    operator: str
+    value: float
+    action: str
+
+class SandboxRequest(BaseModel):
+    symbol: str
+    timeframe: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    conditions: List[SandboxCondition]
+    tp: float = 20.0
+    sl: float = 20.0
+
+@app.post("/api/sandbox/run")
+def run_sandbox(request: SandboxRequest):
+    # Load data
+    data = data_manager.load_data(request.symbol, request.timeframe, request.start_date, request.end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Data not found for simulation")
+        
+    # Run simulation
+    try:
+        results = run_sandbox_backtest(
+            data, 
+            [c.dict() for c in request.conditions],
+            tp_pips=request.tp,
+            sl_pips=request.sl
+        )
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 
 

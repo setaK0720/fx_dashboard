@@ -352,6 +352,41 @@ class MT5Client:
         
         return rates
 
+    def get_candles_range(self, symbol, timeframe, from_date, to_date):
+        """
+        Get historical candles for a specific date range.
+        from_date, to_date: datetime objects
+        """
+        if not self.connected:
+            return None
+        
+        # Map timeframe
+        tf_map = {
+            "M1": mt5.TIMEFRAME_M1,
+            "M5": mt5.TIMEFRAME_M5,
+            "M15": mt5.TIMEFRAME_M15,
+            "M30": mt5.TIMEFRAME_M30,
+            "H1": mt5.TIMEFRAME_H1,
+            "H4": mt5.TIMEFRAME_H4,
+            "D1": mt5.TIMEFRAME_D1,
+        }
+        mt5_tf = tf_map.get(timeframe, mt5.TIMEFRAME_M1)
+
+        # Normalize symbol
+        normalized_symbol = self.normalize_symbol(symbol)
+
+        # Ensure symbol is selected
+        if not mt5.symbol_select(normalized_symbol, True):
+            logger.error(f"Failed to select symbol {normalized_symbol}")
+            return None
+
+        rates = mt5.copy_rates_range(normalized_symbol, mt5_tf, from_date, to_date)
+        if rates is None:
+            logger.error(f"Failed to get rates range for {normalized_symbol} (Error: {mt5.last_error()})")
+            return None
+        
+        return rates
+
     def get_history_deals(self, from_date, to_date):
         """
         Get history deals within the specified range.
@@ -397,3 +432,114 @@ class MT5Client:
         # Sort by time descending
         result.sort(key=lambda x: x["time"], reverse=True)
         return result
+
+    def get_history_positions(self, from_date, to_date):
+        """
+        Get history positions (aggregated deals) within the specified range.
+        """
+        deals = self.get_history_deals(from_date, to_date)
+        if not deals:
+            return []
+
+        positions = {}
+        
+        for deal in deals:
+            # Skip balance operations if they don't have a position ID or if we want to exclude them
+            # Usually balance ops have entry=IN but type=BALANCE (2)
+            # We focus on BUY/SELL
+            
+            # deal structure from get_history_deals:
+            # ticket, order, time, type, entry, symbol, volume, price, commission, swap, profit
+            
+            # We need raw deal info to group by position_id, but get_history_deals returns processed dicts.
+            # However, get_history_deals doesn't return position_id. 
+            # We need to modify get_history_deals or access raw deals here.
+            # Let's use raw mt5.history_deals_get here for flexibility.
+            pass
+
+        # Re-implementing logic using raw calls to ensure we have position_id
+        if not self.connected:
+            return []
+            
+        raw_deals = mt5.history_deals_get(from_date, to_date)
+        if raw_deals is None:
+            return []
+
+        # Group by position_id
+        pos_map = {}
+        
+        for deal in raw_deals:
+            pid = deal.position_id
+            if pid == 0: # Balance/Credit operations usually have 0 or unique
+                continue
+                
+            if pid not in pos_map:
+                pos_map[pid] = []
+            pos_map[pid].append(deal)
+            
+        results = []
+        server_offset_hours = 2
+        
+        for pid, deals in pos_map.items():
+            # Sort deals by time
+            deals.sort(key=lambda x: x.time)
+            
+            # Identify Entry (IN) and Exit (OUT)
+            # Simple assumption: First deal is Open, Last deal is Close
+            # Or check entry type
+            
+            open_deal = None
+            close_deal = None
+            
+            total_profit = 0.0
+            total_swap = 0.0
+            total_commission = 0.0
+            total_volume = 0.0
+            
+            for d in deals:
+                total_profit += d.profit
+                total_swap += d.swap
+                total_commission += d.commission
+                
+                if d.entry == mt5.DEAL_ENTRY_IN:
+                    open_deal = d
+                elif d.entry == mt5.DEAL_ENTRY_OUT or d.entry == mt5.DEAL_ENTRY_OUT_BY:
+                    close_deal = d
+                    total_volume += d.volume # Sum volume of closing deals? Or just take the last one?
+            
+            # If we don't have a close deal, the position might still be open (but history_deals usually contains closed ones? or partials?)
+            # If it's still open, it shouldn't be in history if we only want closed positions?
+            # Actually history_deals_get returns deals. Open positions are in positions_get.
+            # If a position is fully closed, we should have IN and OUT.
+            
+            if not open_deal:
+                continue # Should not happen for valid trades
+                
+            # If no close deal, maybe it's a partial close or something, or just opened in this period?
+            # If we want only CLOSED positions, we need to check if it's closed.
+            # But user wants history.
+            
+            # Use open_deal for symbol, type
+            # Use close_deal for close time/price
+            
+            utc_open_time = open_deal.time - (server_offset_hours * 3600)
+            utc_close_time = (close_deal.time - (server_offset_hours * 3600)) if close_deal else None
+            
+            results.append({
+                "position_id": pid,
+                "symbol": open_deal.symbol,
+                "type": "BUY" if open_deal.type == mt5.ORDER_TYPE_BUY else "SELL",
+                "volume": open_deal.volume, # Initial volume
+                "open_price": open_deal.price,
+                "open_time": utc_open_time,
+                "close_price": close_deal.price if close_deal else 0.0,
+                "close_time": utc_close_time,
+                "profit": total_profit + total_swap + total_commission, # Net profit
+                "swap": total_swap,
+                "commission": total_commission,
+                "status": "CLOSED" if close_deal else "OPEN" # Just in case
+            })
+            
+        # Sort by close time descending (most recent closed first)
+        results.sort(key=lambda x: x["close_time"] if x["close_time"] else 0, reverse=True)
+        return results
