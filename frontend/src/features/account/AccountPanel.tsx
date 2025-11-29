@@ -20,7 +20,7 @@ export const AccountPanel = () => {
 
     const fetchAccounts = async () => {
         try {
-            const res = await fetch(`http://${window.location.hostname}:8000/api/accounts`);
+            const res = await fetch('/api/accounts');
             if (!res.ok) throw new Error('Failed to fetch accounts');
             const data = await res.json();
             setInfo(data);
@@ -42,7 +42,7 @@ export const AccountPanel = () => {
 
         setLoading(true);
         try {
-            const res = await fetch(`http://${window.location.hostname}:8000/api/accounts/switch`, {
+            const res = await fetch('/api/accounts/switch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ account_name: accountName }),
@@ -71,29 +71,29 @@ export const AccountPanel = () => {
     if (!info) return <Spinner />;
 
     return (
-        <Box p={4} bg="gray.800" borderRadius="md" border="1px" borderColor="gray.700">
-            <Heading size="md" mb={4}>Account Management</Heading>
+        <Box p={4} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)">
+            <Heading size="md" mb={4} color="text.main">Account Management</Heading>
 
             <VStack align="stretch" gap={3}>
                 {info.accounts.map(account => (
                     <Box
                         key={account.name}
                         p={3}
-                        bg="gray.700"
+                        bg="glass.100"
                         borderRadius="md"
                         borderWidth={account.name === info.current_account ? "2px" : "1px"}
-                        borderColor={account.name === info.current_account ? "teal.400" : "gray.600"}
+                        borderColor={account.name === info.current_account ? "teal.400" : "border.glass"}
                     >
                         <HStack justify="space-between">
                             <VStack align="start" gap={1}>
-                                <Text fontWeight="bold" fontSize="lg">{account.name}</Text>
+                                <Text fontWeight="bold" fontSize="lg" color="text.main">{account.name}</Text>
                                 {account.account_number && (
-                                    <Text fontSize="sm" color="gray.400">
+                                    <Text fontSize="sm" color="text.muted">
                                         口座番号: {account.account_number}
                                     </Text>
                                 )}
                                 {account.server && (
-                                    <Text fontSize="sm" color="gray.400">
+                                    <Text fontSize="sm" color="text.muted">
                                         サーバー: {account.server}
                                     </Text>
                                 )}
@@ -106,6 +106,7 @@ export const AccountPanel = () => {
 
                             <Button
                                 size="sm"
+                                variant={account.name === info.current_account ? "outline" : "solid"}
                                 colorPalette={account.name === info.current_account ? "gray" : "teal"}
                                 disabled={account.name === info.current_account || loading}
                                 onClick={() => handleSwitch(account.name)}

@@ -1,4 +1,4 @@
-const API_BASE_URL = `http://${window.location.hostname}:8000/api`;
+const API_BASE_URL = '/api';
 
 export interface BotStatus {
     is_running: boolean;
@@ -71,7 +71,8 @@ export const placeOrder = async (order: OrderCreate): Promise<OrderResponse> => 
         body: JSON.stringify(order),
     });
     if (!response.ok) {
-        throw new Error('Failed to place order');
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to place order' }));
+        throw new Error(errorData.detail || 'Failed to place order');
     }
     return response.json();
 };
