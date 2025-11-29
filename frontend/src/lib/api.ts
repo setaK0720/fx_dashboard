@@ -112,3 +112,27 @@ export const closeAllPositions = async (type: 'BUY' | 'SELL' | 'ALL' = 'ALL'): P
     }
     return response.json();
 };
+
+export interface HistoryDeal {
+    ticket: number;
+    order: number;
+    time: number;
+    time_msc: number;
+    type: string;
+    entry: string;
+    symbol: string;
+    volume: number;
+    price: number;
+    commission: number;
+    swap: number;
+    profit: number;
+    comment: string;
+}
+
+export const fetchHistory = async (days: number = 30): Promise<HistoryDeal[]> => {
+    const response = await fetch(`${API_BASE_URL}/history?days=${days}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch history');
+    }
+    return response.json();
+};

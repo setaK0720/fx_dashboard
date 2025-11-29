@@ -32,7 +32,7 @@ export const PositionTable = () => {
     }, []);
 
     const handleClose = async (ticket: number) => {
-        if (!confirm(`Are you sure you want to close position ${ticket}?`)) return;
+        // if (!confirm(`Are you sure you want to close position ${ticket}?`)) return;
         try {
             await closePosition(ticket);
             loadPositions(); // Reload after close

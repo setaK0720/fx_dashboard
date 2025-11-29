@@ -8,6 +8,7 @@ import { OrderForm } from './features/dashboard/OrderForm'
 import { BacktestPanel } from './features/dashboard/BacktestPanel'
 import { AccountPanel } from './features/account/AccountPanel'
 import { AccountInfoWidget } from './features/dashboard/AccountInfoWidget'
+import { HistoryPanel } from './features/dashboard/HistoryPanel'
 import { useState } from 'react'
 
 import { Toaster } from './components/ui/toaster'
@@ -38,6 +39,8 @@ function App() {
             </Box>
             <PositionTable />
           </>
+        ) : currentView === 'history' ? (
+          <HistoryPanel />
         ) : (
           <AccountPanel />
         )}
@@ -48,8 +51,3 @@ function App() {
 }
 
 export default App
-
-
-
-
-

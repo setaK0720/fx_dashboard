@@ -351,3 +351,49 @@ class MT5Client:
             return None
         
         return rates
+
+    def get_history_deals(self, from_date, to_date):
+        """
+        Get history deals within the specified range.
+        from_date, to_date: datetime objects (timezone-aware or naive)
+        """
+        if not self.connected:
+            return []
+        
+        # Ensure dates are timezone-aware (UTC) if not already, or handle as needed
+        # MT5 expects datetime objects
+        deals = mt5.history_deals_get(from_date, to_date)
+        
+        if deals is None:
+            logger.warning(f"Failed to get history deals, error code: {mt5.last_error()}")
+            return []
+        
+        result = []
+        for deal in deals:
+            # Filter out non-trading deals if necessary (e.g., balance operations)
+            # Entry 0 is IN, 1 is OUT, 2 is IN/OUT
+            # Deal types: 0=BUY, 1=SELL, 2=BALANCE, etc.
+            
+            # Convert time to UTC (similar to get_positions)
+            server_offset_hours = 2
+            utc_time = deal.time - (server_offset_hours * 3600)
+            
+            result.append({
+                "ticket": deal.ticket,
+                "order": deal.order,
+                "time": utc_time,
+                "time_msc": deal.time_msc,
+                "type": "BUY" if deal.type == mt5.ORDER_TYPE_BUY else "SELL" if deal.type == mt5.ORDER_TYPE_SELL else str(deal.type),
+                "entry": "IN" if deal.entry == mt5.DEAL_ENTRY_IN else "OUT" if deal.entry == mt5.DEAL_ENTRY_OUT else "IN/OUT" if deal.entry == mt5.DEAL_ENTRY_INOUT else "OUT_BY",
+                "symbol": deal.symbol,
+                "volume": deal.volume,
+                "price": deal.price,
+                "commission": deal.commission,
+                "swap": deal.swap,
+                "profit": deal.profit,
+                "comment": deal.comment
+            })
+        
+        # Sort by time descending
+        result.sort(key=lambda x: x["time"], reverse=True)
+        return result

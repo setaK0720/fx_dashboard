@@ -18,6 +18,9 @@ export const SidebarContent = ({ currentView, onNavigate }: SidebarProps) => {
             <Link onClick={() => onNavigate('dashboard')} {...linkStyle('dashboard')}>
                 <Text fontWeight="bold">Dashboard</Text>
             </Link>
+            <Link onClick={() => onNavigate('history')} {...linkStyle('history')}>
+                <Text fontWeight="bold">History</Text>
+            </Link>
             <Link onClick={() => onNavigate('account')} {...linkStyle('account')}>
                 <Text fontWeight="bold">Account</Text>
             </Link>

@@ -214,6 +214,20 @@ async def switch_account(request: AccountSwitchRequest):
         raise HTTPException(status_code=400, detail="Failed to switch account")
     return {"message": f"Switched to {request.account_name}", "connected": True}
 
+from datetime import datetime, timedelta
+
+@app.get("/api/history")
+def get_history(days: int = 30):
+    """
+    Get trading history for the last N days.
+    """
+    # Set to_date to tomorrow to ensure we cover all trades even with timezone differences
+    to_date = datetime.now() + timedelta(days=1)
+    from_date = to_date - timedelta(days=days + 1) # Adjust from_date accordingly
+    
+    deals = mt5_client.get_history_deals(from_date, to_date)
+    return deals
+
 @app.websocket("/ws/prices")
 async def websocket_endpoint(websocket: WebSocket):
     await price_manager.connect(websocket)
