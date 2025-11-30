@@ -14,6 +14,7 @@ export interface AccountInfo {
     currency: string;
     leverage: number;
     name: string;
+    account_name: string;
     server: string;
     login: number;
 }

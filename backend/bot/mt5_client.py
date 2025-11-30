@@ -148,6 +148,7 @@ class MT5Client:
             "currency": info.currency,
             "leverage": info.leverage,
             "name": info.name,
+            "account_name": self.current_account_name,
             "server": info.server,
             "login": info.login
         }

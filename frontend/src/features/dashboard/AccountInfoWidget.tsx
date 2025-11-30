@@ -1,8 +1,10 @@
-import { Box, Heading, SimpleGrid, Stat, HStack, Badge, Flex } from '@chakra-ui/react';
+import { Box, Heading, Stat, HStack, Badge, Flex, Spinner, chakra } from '@chakra-ui/react';
 import { useAccountInfo } from '../../hooks/useAccountInfo';
+import { useAccountList } from '../../hooks/useAccountList';
 
 export const AccountInfoWidget = () => {
     const { accountInfo, isConnected } = useAccountInfo();
+    const { accounts, switchAccount, switching } = useAccountList();
 
     if (!accountInfo) {
         return (
@@ -20,7 +22,38 @@ export const AccountInfoWidget = () => {
     return (
         <Box p={2} bg="bg.panel" borderRadius="md" border="1px solid" borderColor="border.glass" backdropFilter="blur(10px)">
             <HStack justify="space-between" mb={2}>
-                <Heading size="sm" color="text.main">口座情報</Heading>
+                <HStack gap={4}>
+                    <Heading size="sm" color="text.main">口座情報</Heading>
+                    <Box position="relative">
+                        <chakra.select
+                            value={accountInfo.account_name}
+                            onChange={(e: any) => switchAccount(e.target.value)}
+                            disabled={switching}
+                            bg="glass.100"
+                            color="text.main"
+                            borderColor="border.glass"
+                            borderWidth="1px"
+                            borderRadius="md"
+                            fontSize="sm"
+                            h="24px"
+                            pl={2}
+                            pr={6}
+                            _focus={{ outline: 'none', borderColor: 'teal.400' }}
+                            cursor="pointer"
+                        >
+                            {accounts.map(acc => (
+                                <option key={acc.name} value={acc.name} style={{ color: 'black' }}>
+                                    {acc.name}
+                                </option>
+                            ))}
+                        </chakra.select>
+                        {switching && (
+                            <Box position="absolute" right="-20px" top="4px">
+                                <Spinner size="xs" />
+                            </Box>
+                        )}
+                    </Box>
+                </HStack>
                 <Badge colorPalette={isConnected ? "green" : "red"} variant="solid" size="sm">{isConnected ? "接続中" : "切断"}</Badge>
             </HStack>
 
