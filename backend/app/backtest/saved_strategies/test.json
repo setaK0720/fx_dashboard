@@ -1,7 +1,7 @@
 {
-  "entry_rules": [
+  "buy_entry_rules": [
     {
-      "id": "nkrttvjy1",
+      "id": "lncsslqmx",
       "left": {
         "type": "indicator",
         "name": "rsi",
@@ -16,7 +16,53 @@
       }
     }
   ],
-  "exit_rules": [],
+  "buy_exit_rules": [
+    {
+      "id": "tc64heyp9",
+      "left": {
+        "type": "indicator",
+        "name": "pnl",
+        "params": {}
+      },
+      "operator": ">",
+      "right": {
+        "type": "value",
+        "value": 100
+      }
+    }
+  ],
+  "sell_entry_rules": [
+    {
+      "id": "rzk8hrd9j",
+      "left": {
+        "type": "indicator",
+        "name": "rsi",
+        "params": {
+          "length": 14
+        }
+      },
+      "operator": "<",
+      "right": {
+        "type": "value",
+        "value": 20
+      }
+    }
+  ],
+  "sell_exit_rules": [
+    {
+      "id": "9sygsig1x",
+      "left": {
+        "type": "indicator",
+        "name": "pnl",
+        "params": {}
+      },
+      "operator": ">",
+      "right": {
+        "type": "value",
+        "value": 100
+      }
+    }
+  ],
   "sl_pips": 0,
   "tp_pips": 0
 }

@@ -169,7 +169,7 @@ export const downloadData = async (request: DataDownloadRequest): Promise<{ stat
 };
 
 export const listData = async (): Promise<DataFile[]> => {
-    const response = await fetch(`${API_BASE_URL}/data/list`);
+    const response = await fetch(`${API_BASE_URL}/data/list?t=${new Date().getTime()}`);
     if (!response.ok) {
         throw new Error('Failed to list data');
     }

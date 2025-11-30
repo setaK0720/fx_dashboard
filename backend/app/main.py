@@ -383,7 +383,7 @@ async def run_auto_close_loop():
         try:
             # auto_close_manager.check_and_close() calls mt5_client methods internally
             # We should wrap the whole check logic
-            await auto_close_manager.check_and_close()
+            await asyncio.to_thread(auto_close_manager.check_and_close)
         except Exception as e:
             print(f"Error in auto close loop: {e}")
         await asyncio.sleep(1)  # 1秒ごとにチェック

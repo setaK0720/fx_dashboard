@@ -36,7 +36,6 @@
     - [x] Debugging: Fix 500 error (JSON serialization & Instance vs Class)
     - [x] Debugging: Fix Graph display (Data mapping)
     - [x] Backend: Fix background task concurrency (Deadlock resolution)
-    - [x] UI Improvement: Responsive 2-column layout for Backtest Panel (Sidebar + Main)
 
 ## フェーズ7: ノーコード・ストラテジービルダー（条件設定型）
 - [x] **バックエンド実装**

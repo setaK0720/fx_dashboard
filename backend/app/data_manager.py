@@ -25,17 +25,42 @@ class DataManager:
         Download data from MT5 and save/append to CSV.
         start_date, end_date: datetime objects
         """
-        logger.info(f"Downloading data for {symbol} {timeframe} from {start_date} to {end_date}")
+        # Debug logging
+        with open("debug_download.log", "a") as f:
+            f.write(f"Downloading {symbol} {timeframe} {start_date} - {end_date}\n")
+        
         rates = self.mt5_client.get_candles_range(symbol, timeframe, start_date, end_date)
         
         if rates is None or len(rates) == 0:
             logger.warning("No data received from MT5")
+            with open("debug_download.log", "a") as f:
+                f.write("No data received from MT5\n")
             return False
             
         # Convert to DataFrame
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
         
+        with open("debug_download.log", "a") as f:
+            f.write(f"Received {len(df)} records. Range: {df['time'].min()} - {df['time'].max()}\n")
+            
+        # Validate data range
+        data_start = df['time'].min()
+        data_end = df['time'].max()
+        
+        # Check if data is completely outside requested range
+        # Allow some buffer (e.g. 1 day) for timezone differences
+        req_start = pd.to_datetime(start_date)
+        req_end = pd.to_datetime(end_date)
+        
+        if data_end < req_start or data_start > req_end:
+            msg = f"Data received ({data_start} - {data_end}) is outside requested range ({req_start} - {req_end})"
+            logger.warning(msg)
+            with open("debug_download.log", "a") as f:
+                f.write(f"{msg}\n")
+            # Raise exception to inform user
+            raise ValueError(f"No data available for {symbol} in requested range. Broker returned data from {data_start} to {data_end}.")
+
         file_path = self._get_file_path(symbol, timeframe)
         
         if os.path.exists(file_path):
@@ -43,15 +68,25 @@ class DataManager:
                 existing_df = pd.read_csv(file_path)
                 existing_df['time'] = pd.to_datetime(existing_df['time'])
                 
+                with open("debug_download.log", "a") as f:
+                    f.write(f"Existing file has {len(existing_df)} records. Range: {existing_df['time'].min()} - {existing_df['time'].max()}\n")
+                
                 combined_df = pd.concat([existing_df, df])
                 combined_df.drop_duplicates(subset=['time'], keep='last', inplace=True)
                 combined_df.sort_values('time', inplace=True)
                 combined_df.to_csv(file_path, index=False)
+                
+                with open("debug_download.log", "a") as f:
+                    f.write(f"Saved combined file. New count: {len(combined_df)}. Range: {combined_df['time'].min()} - {combined_df['time'].max()}\n")
             except Exception as e:
                 logger.error(f"Error updating CSV file: {e}")
+                with open("debug_download.log", "a") as f:
+                    f.write(f"Error updating CSV: {e}\n")
                 return False
         else:
             df.to_csv(file_path, index=False)
+            with open("debug_download.log", "a") as f:
+                f.write(f"Created new file with {len(df)} records.\n")
             
         logger.info(f"Saved {len(df)} records to {file_path}")
         return True
