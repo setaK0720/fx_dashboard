@@ -55,9 +55,9 @@ class BacktestEngine:
             
             # Record equity
             self.equity_curve.append({
-                "time": record['time'],
-                "equity": self.current_equity,
-                "balance": self.current_balance
+                "time": record['time'].isoformat() if hasattr(record['time'], 'isoformat') else str(record['time']),
+                "equity": float(self.current_equity),
+                "balance": float(self.current_balance)
             })
             
         return self._generate_results()
@@ -101,10 +101,10 @@ class BacktestEngine:
         
         self.position = {
             'type': type,
-            'price': price,
-            'size': size,
-            'sl': sl,
-            'tp': tp,
+            'price': float(price),
+            'size': float(size),
+            'sl': float(sl) if sl else None,
+            'tp': float(tp) if tp else None,
             'time': time
         }
         
@@ -124,11 +124,11 @@ class BacktestEngine:
         
         self.trades.append({
             'type': self.position['type'],
-            'entry_price': self.position['price'],
-            'exit_price': price,
-            'entry_time': self.position['time'],
-            'exit_time': time,
-            'profit': profit,
+            'entry_price': float(self.position['price']),
+            'exit_price': float(price),
+            'entry_time': self.position['time'].isoformat() if hasattr(self.position['time'], 'isoformat') else str(self.position['time']),
+            'exit_time': time.isoformat() if hasattr(time, 'isoformat') else str(time),
+            'profit': float(profit),
             'reason': reason
         })
         
@@ -175,11 +175,11 @@ class BacktestEngine:
         max_drawdown = drawdown.max()
         
         return {
-            "total_trades": total_trades,
-            "win_rate": round(win_rate, 2),
-            "total_profit": round(total_profit, 2),
-            "profit_factor": round(profit_factor, 2),
-            "max_drawdown": round(max_drawdown, 2),
+            "total_trades": int(total_trades),
+            "win_rate": float(round(win_rate, 2)),
+            "total_profit": float(round(total_profit, 2)),
+            "profit_factor": float(round(profit_factor, 2)),
+            "max_drawdown": float(round(max_drawdown, 2)),
             "trades": self.trades,
             "equity_curve": self.equity_curve
         }

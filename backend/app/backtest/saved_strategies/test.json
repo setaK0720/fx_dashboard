@@ -1,0 +1,22 @@
+{
+  "entry_rules": [
+    {
+      "id": "nkrttvjy1",
+      "left": {
+        "type": "indicator",
+        "name": "rsi",
+        "params": {
+          "length": 14
+        }
+      },
+      "operator": ">",
+      "right": {
+        "type": "value",
+        "value": 50
+      }
+    }
+  ],
+  "exit_rules": [],
+  "sl_pips": 0,
+  "tp_pips": 0
+}

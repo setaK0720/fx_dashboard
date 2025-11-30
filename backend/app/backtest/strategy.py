@@ -41,3 +41,15 @@ class Strategy(ABC):
         self.orders.append({
             "type": "CLOSE"
         })
+
+    @classmethod
+    def get_params_schema(cls) -> list:
+        """
+        Return a list of parameter definitions.
+        Example:
+        [
+            {"name": "period", "type": "number", "default": 14, "label": "Period"},
+            {"name": "mode", "type": "select", "options": ["SMA", "EMA"], "default": "SMA", "label": "Mode"}
+        ]
+        """
+        return []

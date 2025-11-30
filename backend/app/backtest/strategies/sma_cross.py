@@ -35,3 +35,10 @@ class SmaCrossStrategy(Strategy):
                 self.close()
             if not self.position:
                 self.sell(tp=record['close'] - 0.5, sl=record['close'] + 0.2)
+
+    @classmethod
+    def get_params_schema(cls) -> list:
+        return [
+            {"name": "short_window", "type": "number", "default": 10, "label": "Short Window (SMA)"},
+            {"name": "long_window", "type": "number", "default": 30, "label": "Long Window (SMA)"}
+        ]

@@ -61,6 +61,18 @@ class DataManager:
         Load data from local CSV.
         start_date, end_date: datetime objects or strings (YYYY-MM-DD)
         """
+        df = self.load_data_df(symbol, timeframe, start_date, end_date)
+        if df is None:
+            return None
+            
+        # Convert to list of dicts for API response
+        df['time'] = df['time'].apply(lambda x: x.isoformat())
+        return df.to_dict('records')
+
+    def load_data_df(self, symbol, timeframe, start_date=None, end_date=None):
+        """
+        Load data from local CSV as DataFrame.
+        """
         file_path = self._get_file_path(symbol, timeframe)
         if not os.path.exists(file_path):
             return None
@@ -74,14 +86,7 @@ class DataManager:
             if end_date:
                 df = df[df['time'] <= pd.to_datetime(end_date)]
                 
-            # Convert to list of dicts, handling timestamp serialization if needed
-            # For JSON response, we might want to convert timestamp to string or int
-            # But let's return dicts with datetime objects for now, FastAPI handles serialization usually?
-            # Actually FastAPI/Pydantic might prefer strings or specific types.
-            # Let's convert time to ISO string for safety in API response
-            df['time'] = df['time'].apply(lambda x: x.isoformat())
-            
-            return df.to_dict('records')
+            return df
         except Exception as e:
             logger.error(f"Error loading data: {e}")
             return None

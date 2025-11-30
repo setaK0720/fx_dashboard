@@ -48,7 +48,7 @@ uvicorn app.main:app --reload
 ```bash
 cd frontend
 npm install
-npm run dev
+
 ```
 
 ### 4. MT5設定

@@ -50,13 +50,15 @@ import random
 import uuid
 from app.schemas import OrderCreate, OrderResponse
 from bot.auto_close import AutoCloseManager, AutoCloseSettings
+from bot.mt5_client import MT5Client
 
 # ... (existing code) ...
 
 @app.post("/api/orders", response_model=OrderResponse)
 async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
-    # Call MT5 client to place order
-    result = mt5_client.place_order(
+    # Call MT5 client to place order (offload to thread)
+    result = await asyncio.to_thread(
+        mt5_client.place_order,
         symbol=order.symbol,
         order_type=order.order_type,
         volume=order.volume
@@ -73,7 +75,7 @@ async def place_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
 
 @app.delete("/api/positions/{ticket}")
 async def close_position(ticket: int):
-    result = mt5_client.close_position(ticket)
+    result = await asyncio.to_thread(mt5_client.close_position, ticket)
     if result["status"] == "error":
         raise HTTPException(status_code=400, detail=result["message"])
     return result
@@ -90,53 +92,135 @@ async def close_all_positions(type: str = "ALL"):
     elif type == "SELL":
         position_type = "SELL"
     
-    result = mt5_client.close_all_positions(position_type)
+    result = await asyncio.to_thread(mt5_client.close_all_positions, position_type)
     if result["status"] == "error":
         raise HTTPException(status_code=400, detail=result["message"])
     return result
 
 from app.backtest.engine import BacktestEngine
 from app.backtest.strategies.sma_cross import SmaCrossStrategy
+from app.backtest.strategies.rsi import RsiStrategy
+from app.backtest.strategies.macd import MacdStrategy
+from app.backtest.strategies.builder_strategy import BuilderStrategy
+from app.strategy_manager import StrategyManager
 
-class BacktestRunRequest(BaseModel):
+strategy_manager = StrategyManager()
+
+# Standard strategies
+STRATEGIES = {
+    "SmaCross": SmaCrossStrategy,
+    "Rsi": RsiStrategy,
+    "Macd": MacdStrategy
+}
+
+class BacktestRequest(BaseModel):
     symbol: str
     timeframe: str
     strategy: str
     params: dict = {}
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+    start_date: str
+    end_date: str
     initial_cash: float = 10000.0
 
 @app.post("/api/backtest/run")
-def run_backtest_api(request: BacktestRunRequest):
-    # Load data
-    data = data_manager.load_data(request.symbol, request.timeframe, request.start_date, request.end_date)
-    if not data:
-        raise HTTPException(status_code=404, detail="Data not found for backtest")
-        
-    # Select strategy
-    strategy_class = None
-    if request.strategy == "SmaCross":
-        strategy_class = SmaCrossStrategy
-    else:
-        raise HTTPException(status_code=400, detail=f"Unknown strategy: {request.strategy}")
-        
-    # Run backtest
+async def run_backtest_endpoint(request: BacktestRequest):
     try:
-        # Convert list of dicts (from load_data) to DataFrame
-        import pandas as pd
-        df = pd.DataFrame(data)
+        # Load data (offload to thread as it might be heavy IO)
+        data = await asyncio.to_thread(
+            data_manager.load_data_df, 
+            request.symbol, 
+            request.timeframe, 
+            request.start_date, 
+            request.end_date
+        )
+        if data is None or data.empty:
+            raise HTTPException(status_code=404, detail="Data not found for backtest")
         
-        engine = BacktestEngine(df, strategy_class, initial_cash=request.initial_cash, params=request.params)
-        results = engine.run()
+        # Select strategy
+        # Check if it's a standard strategy
+        strategy_class = STRATEGIES.get(request.strategy)
+        params = request.params
+        
+        # If not standard, check if it's a saved builder strategy
+        if not strategy_class:
+            saved_config = strategy_manager.load_strategy(request.strategy)
+            if saved_config:
+                strategy_class = BuilderStrategy
+                # Merge request params with saved config (request params might override?)
+                # For builder, the saved config IS the params.
+                params = saved_config
+                # Ensure symbol is passed if needed
+                params['symbol'] = request.symbol
+            else:
+                raise HTTPException(status_code=400, detail=f"Unknown strategy: {request.strategy}")
+        
+        # Run backtest (CPU intensive, offload to thread)
+        def _run_engine():
+            engine = BacktestEngine(data, strategy_class, request.initial_cash, params)
+            return engine.run()
+
+        results = await asyncio.to_thread(_run_engine)
+        
         return results
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
+        import traceback
+        error_msg = f"Backtest error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg) # Print to server log
+        raise HTTPException(status_code=500, detail=error_msg)
 
+@app.get("/api/backtest/strategies")
+def list_strategies():
+    # Standard strategies
+    standard = [
+        {
+            "name": name,
+            "params": cls.get_params_schema(),
+            "type": "standard"
+        }
+        for name, cls in STRATEGIES.items()
+    ]
+    
+    # Saved strategies
+    saved_names = strategy_manager.list_strategies()
+    saved = [
+        {
+            "name": name,
+            "params": [], # Builder strategies don't have fixed schema, they have internal config
+            "type": "builder"
+        }
+        for name in saved_names
+    ]
+    
+    return standard + saved
 
-from bot.mt5_client import MT5Client
+# Strategy Management API
+class StrategyConfig(BaseModel):
+    name: str
+    config: dict
 
-from bot.mt5_client import MT5Client
+@app.get("/api/strategies/{name}")
+def get_strategy(name: str):
+    config = strategy_manager.load_strategy(name)
+    if not config:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+    return config
+
+@app.post("/api/strategies")
+def save_strategy(strategy: StrategyConfig):
+    success = strategy_manager.save_strategy(strategy.name, strategy.config)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to save strategy")
+    return {"status": "success", "name": strategy.name}
+
+@app.delete("/api/strategies/{name}")
+def delete_strategy(name: str):
+    success = strategy_manager.delete_strategy(name)
+    if not success:
+        raise HTTPException(status_code=404, detail="Strategy not found or failed to delete")
+    return {"status": "success"}
+
 
 mt5_client = MT5Client()
 auto_close_manager = AutoCloseManager(mt5_client)
@@ -144,34 +228,37 @@ auto_close_manager = AutoCloseManager(mt5_client)
 @app.on_event("startup")
 async def on_startup():
     await init_db()
-    if mt5_client.connect():
+    # Connect in thread to avoid blocking startup
+    connected = await asyncio.to_thread(mt5_client.connect)
+    if connected:
         print("Connected to MT5")
     else:
         print("Failed to connect to MT5")
+    
+    # Re-enable background tasks
     asyncio.create_task(broadcast_prices())
     asyncio.create_task(broadcast_account_info())
     asyncio.create_task(run_auto_close_loop())
 
 @app.on_event("shutdown")
 async def on_shutdown():
-    mt5_client.disconnect()
+    await asyncio.to_thread(mt5_client.disconnect)
 
 async def broadcast_prices():
     while True:
         if price_manager.active_connections:
-            # Fetch real rates from MT5
+            # Fetch real rates from MT5 (offload to thread)
             symbols = ["BTCUSD", "USDJPY", "EURUSD", "XAUUSD"]
-            price_data = {}
             
-            for symbol in symbols:
-                rate = mt5_client.get_rates(symbol)
-                if rate:
-                    # Send full rate data (bid, ask, spread)
-                    price_data[symbol] = rate
-                else:
-                    # Fallback or keep previous if needed, for now just skip or use 0
-                    # To avoid UI flickering, we might want to maintain last known state
-                    pass
+            def _fetch_prices():
+                price_data = {}
+                for symbol in symbols:
+                    rate = mt5_client.get_rates(symbol)
+                    if rate:
+                        price_data[symbol] = rate
+                return price_data
+
+            price_data = await asyncio.to_thread(_fetch_prices)
             
             if price_data:
                 await price_manager.broadcast(json.dumps(price_data))
@@ -189,38 +276,42 @@ async def get_status(db: AsyncSession = Depends(get_db)):
     return {"is_running": False, "message": "No status data", "last_updated": None}
 
 @app.get("/api/positions")
-def get_positions():  # Changed from async def to def
-    # Get real-time positions from MT5
-    positions = mt5_client.get_positions()
+async def get_positions():
+    # Get real-time positions from MT5 (offload to thread)
+    positions = await asyncio.to_thread(mt5_client.get_positions)
     return positions
 
 class AccountSwitchRequest(BaseModel):
     account_name: str
 
 @app.get("/api/accounts")
-def get_accounts():  # Changed from async def to def
+async def get_accounts():
     from bot.config import get_available_accounts, load_account_config
     
-    # Get all account names
-    account_names = get_available_accounts()
-    
-    # Load details for each account
-    accounts_details = []
-    for acc_name in account_names:
-        try:
-            config = load_account_config(acc_name)
-            accounts_details.append({
-                "name": acc_name,
-                "account_number": config.get("AccountNumber"),
-                "server": config.get("Server")
-            })
-        except Exception:
-            # If loading fails, just include name
-            accounts_details.append({
-                "name": acc_name,
-                "account_number": None,
-                "server": None
-            })
+    def _get_accounts_info():
+        # Get all account names
+        account_names = get_available_accounts()
+        
+        # Load details for each account
+        accounts_details = []
+        for acc_name in account_names:
+            try:
+                config = load_account_config(acc_name)
+                accounts_details.append({
+                    "name": acc_name,
+                    "account_number": config.get("AccountNumber"),
+                    "server": config.get("Server")
+                })
+            except Exception:
+                # If loading fails, just include name
+                accounts_details.append({
+                    "name": acc_name,
+                    "account_number": None,
+                    "server": None
+                })
+        return accounts_details
+
+    accounts_details = await asyncio.to_thread(_get_accounts_info)
     
     return {
         "accounts": accounts_details,
@@ -230,7 +321,7 @@ def get_accounts():  # Changed from async def to def
 
 @app.post("/api/accounts/switch")
 async def switch_account(request: AccountSwitchRequest):
-    success = mt5_client.switch_account(request.account_name)
+    success = await asyncio.to_thread(mt5_client.switch_account, request.account_name)
     if not success:
         raise HTTPException(status_code=400, detail="Failed to switch account")
     return {"message": f"Switched to {request.account_name}", "connected": True}
@@ -238,27 +329,22 @@ async def switch_account(request: AccountSwitchRequest):
 from datetime import datetime, timedelta
 
 @app.get("/api/history")
-def get_history(days: int = 30, start_date: Optional[str] = None, end_date: Optional[str] = None):
+async def get_history(days: int = 30, start_date: Optional[str] = None, end_date: Optional[str] = None):
     """
     Get trading history for the last N days or specific date range.
     """
     if start_date and end_date:
         try:
             from_date = datetime.strptime(start_date, "%Y-%m-%d")
-            # Set to_date to the end of the specified end_date (23:59:59) essentially next day 00:00:00 minus epsilon, 
-            # but for MT5 history_deals_get(from, to), 'to' is exclusive usually? 
-            # Actually MT5 python API: from, to. 
-            # If we want to include the end_date fully, we should set to_date to end_date + 1 day.
             to_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
             to_date = to_date_obj + timedelta(days=1)
         except ValueError:
              raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     else:
-        # Set to_date to tomorrow to ensure we cover all trades even with timezone differences
         to_date = datetime.now() + timedelta(days=1)
-        from_date = to_date - timedelta(days=days + 1) # Adjust from_date accordingly
+        from_date = to_date - timedelta(days=days + 1)
     
-    positions = mt5_client.get_history_positions(from_date, to_date)
+    positions = await asyncio.to_thread(mt5_client.get_history_positions, from_date, to_date)
     return positions
 
 @app.websocket("/ws/prices")
@@ -286,7 +372,7 @@ async def websocket_account_endpoint(websocket: WebSocket):
 async def broadcast_account_info():
     while True:
         if account_manager.active_connections:
-            info = mt5_client.get_account_info()
+            info = await asyncio.to_thread(mt5_client.get_account_info)
             if info:
                 await account_manager.broadcast(json.dumps(info))
         
@@ -295,6 +381,8 @@ async def broadcast_account_info():
 async def run_auto_close_loop():
     while True:
         try:
+            # auto_close_manager.check_and_close() calls mt5_client methods internally
+            # We should wrap the whole check logic
             await auto_close_manager.check_and_close()
         except Exception as e:
             print(f"Error in auto close loop: {e}")
@@ -322,14 +410,14 @@ class DataDownloadRequest(BaseModel):
     end_date: str
 
 @app.post("/api/data/download")
-def download_data(request: DataDownloadRequest):
+async def download_data(request: DataDownloadRequest):
     try:
         start = datetime.strptime(request.start_date, "%Y-%m-%d")
         end = datetime.strptime(request.end_date, "%Y-%m-%d")
         # Include the end date fully
         end = end + timedelta(days=1)
         
-        success = data_manager.download_data(request.symbol, request.timeframe, start, end)
+        success = await asyncio.to_thread(data_manager.download_data, request.symbol, request.timeframe, start, end)
         if not success:
              raise HTTPException(status_code=400, detail="Failed to download data")
         return {"status": "success", "message": f"Downloaded {request.symbol} {request.timeframe}"}
@@ -338,11 +426,12 @@ def download_data(request: DataDownloadRequest):
 
 @app.get("/api/data/list")
 def list_data():
+    # This is file system op, fast enough usually, but could be threaded if many files
     return data_manager.get_available_data()
 
 @app.get("/api/data/load")
-def load_data(symbol: str, timeframe: str, start_date: Optional[str] = None, end_date: Optional[str] = None):
-    data = data_manager.load_data(symbol, timeframe, start_date, end_date)
+async def load_data(symbol: str, timeframe: str, start_date: Optional[str] = None, end_date: Optional[str] = None):
+    data = await asyncio.to_thread(data_manager.load_data, symbol, timeframe, start_date, end_date)
     if data is None:
         raise HTTPException(status_code=404, detail="Data not found")
     return data
@@ -363,15 +452,15 @@ class AnalysisRequest(BaseModel):
     indicators: List[IndicatorParam]
 
 @app.post("/api/analysis/indicators")
-def get_indicators(request: AnalysisRequest):
+async def get_indicators(request: AnalysisRequest):
     # Load data
-    data = data_manager.load_data(request.symbol, request.timeframe, request.start_date, request.end_date)
+    data = await asyncio.to_thread(data_manager.load_data, request.symbol, request.timeframe, request.start_date, request.end_date)
     if not data:
         raise HTTPException(status_code=404, detail="Data not found for analysis")
         
     # Calculate indicators
     try:
-        results = calculate_indicators(data, [ind.dict() for ind in request.indicators])
+        results = await asyncio.to_thread(calculate_indicators, data, [ind.dict() for ind in request.indicators])
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
@@ -380,7 +469,7 @@ def get_indicators(request: AnalysisRequest):
 from app.analysis import calculate_account_stats
 
 @app.get("/api/analysis/account")
-def get_account_analysis(days: int = 30, start_date: Optional[str] = None, end_date: Optional[str] = None):
+async def get_account_analysis(days: int = 30, start_date: Optional[str] = None, end_date: Optional[str] = None):
     """
     Get account analysis statistics.
     """
@@ -395,11 +484,11 @@ def get_account_analysis(days: int = 30, start_date: Optional[str] = None, end_d
         to_date = datetime.now() + timedelta(days=1)
         from_date = to_date - timedelta(days=days + 1)
     
-    # Get positions
-    positions = mt5_client.get_history_positions(from_date, to_date)
+    # Get positions (offload)
+    positions = await asyncio.to_thread(mt5_client.get_history_positions, from_date, to_date)
     
-    # Calculate stats
-    stats = calculate_account_stats(positions)
+    # Calculate stats (CPU bound, offload)
+    stats = await asyncio.to_thread(calculate_account_stats, positions)
     return stats
 
 
@@ -422,15 +511,16 @@ class SandboxRequest(BaseModel):
     sl: float = 20.0
 
 @app.post("/api/sandbox/run")
-def run_sandbox(request: SandboxRequest):
+async def run_sandbox(request: SandboxRequest):
     # Load data
-    data = data_manager.load_data(request.symbol, request.timeframe, request.start_date, request.end_date)
+    data = await asyncio.to_thread(data_manager.load_data, request.symbol, request.timeframe, request.start_date, request.end_date)
     if not data:
         raise HTTPException(status_code=404, detail="Data not found for simulation")
         
     # Run simulation
     try:
-        results = run_sandbox_backtest(
+        results = await asyncio.to_thread(
+            run_sandbox_backtest,
             data, 
             [c.dict() for c in request.conditions],
             tp_pips=request.tp,

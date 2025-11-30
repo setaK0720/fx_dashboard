@@ -232,6 +232,37 @@ export const fetchAccountAnalysis = async (days: number = 30, startDate?: string
     return response.json();
 };
 
+
+export const saveStrategy = async (name: string, config: any) => {
+    const response = await fetch(`${API_BASE_URL}/strategies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, config }),
+    });
+    if (!response.ok) throw new Error('Failed to save strategy');
+    return response.json();
+};
+
+export const deleteStrategy = async (name: string) => {
+    const response = await fetch(`${API_BASE_URL}/strategies/${name}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete strategy');
+    return response.json();
+};
+
+export const getStrategy = async (name: string) => {
+    const response = await fetch(`${API_BASE_URL}/strategies/${name}`);
+    if (!response.ok) throw new Error('Failed to fetch strategy');
+    return response.json();
+};
+
+export const fetchStrategies = async () => {
+    const response = await fetch(`${API_BASE_URL}/backtest/strategies`);
+    if (!response.ok) throw new Error('Failed to fetch strategies');
+    return response.json();
+};
+
 export const runBacktest = async (params: any): Promise<any> => {
     const response = await fetch(`${API_BASE_URL}/backtest/run`, {
         method: 'POST',
@@ -246,4 +277,5 @@ export const runBacktest = async (params: any): Promise<any> => {
     }
     return response.json();
 };
+
 export const fetchAvailableData = listData;

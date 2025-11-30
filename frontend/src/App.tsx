@@ -14,6 +14,7 @@ import { AnalysisPanel } from './features/analysis/AnalysisPanel'
 import { SandboxPanel } from './features/sandbox/SandboxPanel'
 import { AccountAnalysisPanel } from './features/analysis/AccountAnalysisPanel'
 import { BacktestPanel } from './features/backtest/BacktestPanel'
+import { StrategyBuilder } from './features/strategy/StrategyBuilder'
 import { useState } from 'react'
 
 import { Toaster } from './components/ui/toaster'
@@ -54,6 +55,8 @@ function App() {
           <AccountAnalysisPanel />
         ) : currentView === 'backtest' ? (
           <BacktestPanel />
+        ) : currentView === 'strategy-builder' ? (
+          <StrategyBuilder />
         ) : (
           <AccountPanel />
         )}

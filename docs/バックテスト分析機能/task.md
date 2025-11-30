@@ -15,7 +15,7 @@
     - [x] Frontend: データ取得・管理画面の実装 <!-- id: 8 -->
 
 ## フェーズ3: 市場分析・ロジック検討機能（新規追加）
-- [/] **市場分析ツール** <!-- id: 20 -->
+- [x] **市場分析ツール** <!-- id: 20 -->
     - [x] Frontend: 高機能チャート表示（TradingView Lightweight Charts等）とインジケーター表示 <!-- id: 21 -->
     - [x] Backend: テクニカル指標計算API（TA-Lib等利用） <!-- id: 22 -->
 - [x] **簡易ロジック検証（サンドボックス）** <!-- id: 23 -->
@@ -27,19 +27,26 @@
     - [x] Backend: 既存の注文履歴データから詳細な統計指標（PF, 勝率, DDなど）を計算するAPI <!-- id: 10 -->
     - [x] Frontend: 分析ダッシュボード画面の実装（資産推移グラフ、月次損益など） <!-- id: 11 -->
 
+## フェーズ6: ストラテジー機能の拡張
+    - [x] Backend: Strategy Discovery API (List available strategies and their params)
+- [x] **UIの動的対応**
+    - [x] Frontend: Fetch available strategies from API
+    - [x] Frontend: Dynamic form generation based on strategy parameters
+    - [x] UI Fixes: Dropdown visibility (Dark theme styling) and Loading states
+    - [x] Debugging: Fix 500 error (JSON serialization & Instance vs Class)
+    - [x] Debugging: Fix Graph display (Data mapping)
+    - [x] Backend: Fix background task concurrency (Deadlock resolution)
+    - [x] UI Improvement: Responsive 2-column layout for Backtest Panel (Sidebar + Main)
 
-
-## フェーズ4: バックテストエンジン
-- [/] **バックテストコア実装** <!-- id: 12 -->
-    - [x] Backend: ストラテジーの基本クラス定義 <!-- id: 13 -->
-    - [x] Backend: バックテスト実行エンジン（エントリー、決済、損益計算）の実装 <!-- id: 14 -->
-    - [x] Backend: バックテスト結果の集計・レスポンス生成 <!-- id: 15 -->
-
-## フェーズ5: バックテスト機能の実装
-    - [x] Backend: Strategy class implementation
-    - [x] Backend: BacktestEngine implementation
-    - [x] Backend: API endpoint implementation
-    - [x] Frontend: BacktestPanel component implementation
-    - [x] Frontend: Integration with App.tsx
-    - [x] Debugging: Resolve blank page issue (Vite cache/server state)
-    - [x] UI Fixes: Button and Table Header visibility
+## フェーズ7: ノーコード・ストラテジービルダー（条件設定型）
+- [x] **バックエンド実装**
+    - [x] `BuilderStrategy` class implementation (Generic strategy engine that runs based on JSON config)
+    - [x] Dynamic Indicator Calculation (Wrapper for pandas_ta to handle dynamic params)
+    - [x] StrategyFileManager (Save/Load JSON strategy configs)
+    - [x] API Endpoints for strategy management
+- [x] **フロントエンド実装**
+    - [x] StrategyBuilder UI (Condition editor: Indicator, Operator, Value)
+    - [x] Rule Management (Entry Rules, Exit Rules, Risk Management)
+    - [x] Save/Load functionality
+- [x] **統合**
+    - [x] Integrate with BacktestPanel (Load JSON strategies)

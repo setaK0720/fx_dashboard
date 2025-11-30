@@ -39,6 +39,9 @@ export const SidebarContent = ({ currentView, onNavigate }: SidebarProps) => {
             <Link onClick={() => onNavigate('backtest')} {...linkStyle('backtest')}>
                 <Text fontWeight="bold">Backtest</Text>
             </Link>
+            <Link onClick={() => onNavigate('strategy-builder')} {...linkStyle('strategy-builder')}>
+                <Text fontWeight="bold">Strategy Builder</Text>
+            </Link>
             <Link _hover={{ textDecoration: 'none', color: 'teal.300' }}>
                 <Text>Settings</Text>
             </Link>

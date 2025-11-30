@@ -7,3 +7,4 @@ python-multipart
 websockets
 pandas
 MetaTrader5
+pandas_ta
